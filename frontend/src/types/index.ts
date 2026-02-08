@@ -38,6 +38,12 @@ export interface RegisterCredentials {
   password: string;
 }
 
+export interface CreateEntryData {
+  drinkId: number;
+  quantity: number;
+  date: string;
+}
+
 export interface StatsResponse {
   period: {
     from: string;
