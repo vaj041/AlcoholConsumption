@@ -129,7 +129,7 @@ export default function Dashboard() {
                   <option value="">Select a drink...</option>
                   {drinks.map((drink) => (
                     <option key={drink.id} value={drink.id}>
-                      {drink.name} ({drink.volumeMl}ml, {drink.alcoholPercentage}%)
+                      {drink.name} ({drink.volumeMl}ml, {drink.alcoholPct}%)
                     </option>
                   ))}
                 </select>
