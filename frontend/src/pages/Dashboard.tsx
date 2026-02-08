@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDrinksStore } from '../store/drinksStore';
 import { entriesService } from '../services/entriesService';
-import type { CreateEntryData } from '../types';
+import type { CreateEntryData, Entry } from '../types';
 
 interface EntryFormData {
   drinkId: string;
@@ -15,6 +15,8 @@ export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [todayEntries, setTodayEntries] = useState<Entry[]>([]);
+  const [isLoadingToday, setIsLoadingToday] = useState(true);
   
   const { register, handleSubmit, reset, formState: { errors } } = useForm<EntryFormData>({
     defaultValues: {
@@ -24,7 +26,39 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDrinks();
+    loadTodayEntries();
   }, [fetchDrinks]);
+
+  const loadTodayEntries = async () => {
+    try {
+      setIsLoadingToday(true);
+      const today = new Date().toISOString().split('T')[0];
+      const allEntries = await entriesService.getAll();
+      const todaysEntries = allEntries.filter(entry => 
+        entry.date.startsWith(today)
+      );
+      setTodayEntries(todaysEntries);
+    } catch (err) {
+      console.error('Failed to load today entries:', err);
+    } finally {
+      setIsLoadingToday(false);
+    }
+  };
+
+  const calculateTodayStats = () => {
+    let totalGrams = 0;
+    let totalMl = 0;
+
+    todayEntries.forEach(entry => {
+      const volumeMl = entry.drink.volumeMl * entry.quantity;
+      const pureAlcoholMl = volumeMl * (entry.drink.alcoholPct / 100);
+      const pureAlcoholGrams = pureAlcoholMl * 0.789;
+      totalMl += pureAlcoholMl;
+      totalGrams += pureAlcoholGrams;
+    });
+
+    return { totalGrams, totalMl };
+  };
 
   const onSubmit = async (data: EntryFormData) => {
     try {
@@ -46,6 +80,12 @@ export default function Dashboard() {
         date: new Date().toISOString().split('T')[0]
       });
       
+      // Reload today's entries if the added entry is for today
+      const today = new Date().toISOString().split('T')[0];
+      if (data.date === today) {
+        loadTodayEntries();
+      }
+      
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to add entry');
@@ -53,6 +93,8 @@ export default function Dashboard() {
       setIsSubmitting(false);
     }
   };
+
+  const todayStats = calculateTodayStats();
 
   return (
     <div>
@@ -157,7 +199,52 @@ export default function Dashboard() {
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <h2 className="card-title">Today's Summary</h2>
-            <p>Coming soon...</p>
+            {isLoadingToday ? (
+              <div className="flex justify-center py-4">
+                <span className="loading loading-spinner loading-md"></span>
+              </div>
+            ) : todayEntries.length === 0 ? (
+              <p className="text-base-content/60">No entries for today yet</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="stats shadow w-full">
+                  <div className="stat">
+                    <div className="stat-title">Entries Today</div>
+                    <div className="stat-value text-primary">{todayEntries.length}</div>
+                  </div>
+                  <div className="stat">
+                    <div className="stat-title">Pure Alcohol</div>
+                    <div className="stat-value text-secondary">{todayStats.totalGrams.toFixed(1)}g</div>
+                    <div className="stat-desc">{todayStats.totalMl.toFixed(1)}ml</div>
+                  </div>
+                </div>
+                
+                <div className="divider">Today's Drinks</div>
+                
+                <div className="space-y-2">
+                  {todayEntries.map(entry => {
+                    const volumeMl = entry.drink.volumeMl * entry.quantity;
+                    const pureAlcoholMl = volumeMl * (entry.drink.alcoholPct / 100);
+                    const pureAlcoholGrams = pureAlcoholMl * 0.789;
+                    
+                    return (
+                      <div key={entry.id} className="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                        <div>
+                          <p className="font-semibold">{entry.drink.name}</p>
+                          <p className="text-sm text-base-content/60">
+                            {entry.quantity}x {entry.drink.volumeMl}ml ({entry.drink.alcoholPct}%)
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-accent">{pureAlcoholGrams.toFixed(1)}g</p>
+                          <p className="text-xs text-base-content/60">{pureAlcoholMl.toFixed(1)}ml</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
