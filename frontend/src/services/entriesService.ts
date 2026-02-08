@@ -16,6 +16,11 @@ export const entriesService = {
     return data;
   },
 
+  async update(id: number, entry: { date?: string; quantity?: number }): Promise<Entry> {
+    const { data } = await api.put<Entry>(`/entries/${id}`, entry);
+    return data;
+  },
+
   async delete(id: number): Promise<void> {
     await api.delete(`/entries/${id}`);
   },

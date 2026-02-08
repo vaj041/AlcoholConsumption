@@ -6,6 +6,9 @@ export default function History() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+  const [editQuantity, setEditQuantity] = useState('');
+  const [editDate, setEditDate] = useState('');
 
   useEffect(() => {
     loadEntries();
@@ -21,6 +24,34 @@ export default function History() {
       setError(err instanceof Error ? err.message : 'Failed to load entries');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEdit = (entry: Entry) => {
+    setEditingEntry(entry);
+    setEditQuantity(entry.quantity.toString());
+    setEditDate(new Date(entry.date).toISOString().split('T')[0]);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEntry(null);
+    setEditQuantity('');
+    setEditDate('');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingEntry) return;
+
+    try {
+      const updatedEntry = await entriesService.update(editingEntry.id, {
+        quantity: parseFloat(editQuantity),
+        date: new Date(editDate).toISOString(),
+      });
+
+      setEntries(entries.map((e) => (e.id === updatedEntry.id ? updatedEntry : e)));
+      handleCancelEdit();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update entry');
     }
   };
 
@@ -106,17 +137,72 @@ export default function History() {
                         </p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDelete(entry.id)}
-                      className="btn btn-error btn-sm"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(entry)}
+                        className="btn btn-warning btn-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(entry.id)}
+                        className="btn btn-error btn-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingEntry && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-4">Edit Entry: {editingEntry.drink.name}</h3>
+            
+            <div className="space-y-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Quantity</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={editQuantity}
+                  onChange={(e) => setEditQuantity(e.target.value)}
+                  className="input input-bordered"
+                  min="0.1"
+                  max="100"
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Date</span>
+                </label>
+                <input
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="input input-bordered"
+                />
+              </div>
+            </div>
+
+            <div className="modal-action">
+              <button onClick={handleCancelEdit} className="btn">
+                Cancel
+              </button>
+              <button onClick={handleSaveEdit} className="btn btn-primary">
+                Save
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
