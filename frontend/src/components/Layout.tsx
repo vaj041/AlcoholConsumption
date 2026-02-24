@@ -52,7 +52,9 @@ export default function Layout({ children }: LayoutProps) {
         </header>
 
         <main className="pt-[60px] p-4">
-          {children ?? <Outlet />}
+          <div className="mx-auto w-full max-w-5xl">
+            {children ?? <Outlet />}
+          </div>
         </main>
       </div>
 
