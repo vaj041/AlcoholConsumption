@@ -1,23 +1,96 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { statsService } from '../services/statsService';
 import type { StatsResponse } from '../types';
+
+type PresetKey = 'prevWeek' | 'thisWeek' | 'prevMonth' | 'thisMonth';
+
+type DateRange = {
+  from: string;
+  to: string;
+};
+
+const toDateInput = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const startOfWeekMonday = (date: Date) => {
+  const result = new Date(date);
+  const weekday = (result.getDay() + 6) % 7;
+  result.setDate(result.getDate() - weekday);
+  result.setHours(0, 0, 0, 0);
+  return result;
+};
+
+const endOfWeekSunday = (date: Date) => {
+  const result = startOfWeekMonday(date);
+  result.setDate(result.getDate() + 6);
+  result.setHours(23, 59, 59, 999);
+  return result;
+};
+
+const startOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
+
+const endOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+const getPresetRange = (preset: PresetKey): DateRange => {
+  const now = new Date();
+
+  if (preset === 'thisWeek') {
+    return {
+      from: toDateInput(startOfWeekMonday(now)),
+      to: toDateInput(endOfWeekSunday(now)),
+    };
+  }
+
+  if (preset === 'prevWeek') {
+    const thisWeekStart = startOfWeekMonday(now);
+    const prevWeekStart = new Date(thisWeekStart);
+    prevWeekStart.setDate(thisWeekStart.getDate() - 7);
+    const prevWeekEnd = endOfWeekSunday(prevWeekStart);
+
+    return {
+      from: toDateInput(prevWeekStart),
+      to: toDateInput(prevWeekEnd),
+    };
+  }
+
+  if (preset === 'thisMonth') {
+    return {
+      from: toDateInput(startOfMonth(now)),
+      to: toDateInput(endOfMonth(now)),
+    };
+  }
+
+  const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return {
+    from: toDateInput(startOfMonth(prevMonthDate)),
+    to: toDateInput(endOfMonth(prevMonthDate)),
+  };
+};
+
+const PRESET_LABELS: Record<PresetKey, string> = {
+  prevWeek: 'Minulý týden',
+  thisWeek: 'Tento týden',
+  prevMonth: 'Minulý měsíc',
+  thisMonth: 'Tento měsíc',
+};
 
 export default function Statistics() {
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [fromDate, setFromDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
-  });
-  const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [activePreset, setActivePreset] = useState<PresetKey | null>('thisWeek');
+  const [fromDate, setFromDate] = useState(() => getPresetRange('thisWeek').from);
+  const [toDate, setToDate] = useState(() => getPresetRange('thisWeek').to);
 
-  const loadStats = async () => {
+  const loadStats = async (from: string, to: string) => {
     try {
       setIsLoading(true);
       setError('');
-      const data = await statsService.getStats(fromDate, toDate);
+      const data = await statsService.getStats(from, to);
       setStats(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load statistics');
@@ -26,9 +99,23 @@ export default function Statistics() {
     }
   };
 
+  useEffect(() => {
+    const initialRange = getPresetRange('thisWeek');
+    loadStats(initialRange.from, initialRange.to);
+  }, []);
+
+  const handlePresetClick = (preset: PresetKey) => {
+    const range = getPresetRange(preset);
+    setActivePreset(preset);
+    setFromDate(range.from);
+    setToDate(range.to);
+    loadStats(range.from, range.to);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadStats();
+    setActivePreset(null);
+    loadStats(fromDate, toDate);
   };
 
   return (
@@ -37,8 +124,27 @@ export default function Statistics() {
 
       <div className="card bg-base-100 shadow-xl mb-6">
         <div className="card-body">
-          <h2 className="card-title">Select Date Range</h2>
-          <form onSubmit={handleSubmit} className="flex gap-4 items-end">
+          <h2 className="card-title">Předvolené období</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {(Object.keys(PRESET_LABELS) as PresetKey[]).map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => handlePresetClick(preset)}
+                className={`btn ${activePreset === preset ? 'btn-primary' : 'btn-outline'}`}
+                disabled={isLoading}
+              >
+                {PRESET_LABELS[preset]}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="card bg-base-100 shadow-xl mb-6">
+        <div className="card-body">
+          <h2 className="card-title">Vlastní rozsah (volitelné)</h2>
+          <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap">
             <div className="form-control flex-1">
               <label className="label">
                 <span className="label-text">From</span>
@@ -46,7 +152,10 @@ export default function Statistics() {
               <input
                 type="date"
                 value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
+                onChange={(e) => {
+                  setFromDate(e.target.value);
+                  setActivePreset(null);
+                }}
                 className="input input-bordered"
                 required
               />
@@ -58,7 +167,10 @@ export default function Statistics() {
               <input
                 type="date"
                 value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
+                onChange={(e) => {
+                  setToDate(e.target.value);
+                  setActivePreset(null);
+                }}
                 className="input input-bordered"
                 required
               />
