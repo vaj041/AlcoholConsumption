@@ -1,73 +1,80 @@
+import type { ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
-export default function Layout() {
+type LayoutProps = {
+  children?: ReactNode;
+};
+
+export default function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuthStore();
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
 
+  const pageTitleMap: Record<string, string> = {
+    '/': 'Dashboard',
+    '/drinks': 'Drinks',
+    '/calendar': 'Calendar',
+    '/stats': 'Stats',
+    '/settings': 'Settings',
+  };
+
+  const pageTitle = pageTitleMap[location.pathname] || 'Dashboard';
+
   const menuItems = [
-    { path: '/', label: 'Dashboard', icon: '📊' },
-    { path: '/drinks', label: 'Drinks', icon: '🍺' },
-    { path: '/history', label: 'History', icon: '📜' },
-    { path: '/stats', label: 'Statistics', icon: '📈' },
+    { path: '/', label: 'Dashboard' },
+    { path: '/drinks', label: 'Drinks' },
+    { path: '/calendar', label: 'Calendar' },
+    { path: '/stats', label: 'Stats' },
+    { path: '/settings', label: 'Settings' },
   ];
 
   return (
-    <div className="min-h-screen bg-base-200">
-      {/* Top Navbar */}
-      <div className="navbar bg-base-100 shadow-lg">
-        <div className="flex-1">
-          {/* Hamburger Dropdown Menu */}
-          <div className="dropdown">
-            <div tabIndex={0} role="button" className="btn btn-ghost btn-square">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-6 h-6 stroke-current">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
+    <div className="drawer min-h-screen bg-base-100">
+      <input id="layout-drawer" type="checkbox" className="drawer-toggle" />
+
+      <div className="drawer-content">
+        <header className="fixed top-0 left-0 right-0 z-40 h-[60px] bg-base-200 border-b border-base-300">
+          <div className="h-full px-4 flex items-center justify-between">
+            <div className="w-1/3 flex items-center">
+              <label htmlFor="layout-drawer" className="btn btn-ghost btn-square drawer-button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="w-6 h-6 stroke-current">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </label>
             </div>
-            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-50 p-2 shadow-lg bg-base-100 rounded-box w-52">
-              {menuItems.map((item) => (
-                <li key={item.path}>
-                  <Link 
-                    to={item.path}
-                    className={isActive(item.path) ? 'active' : ''}
-                  >
-                    <span className="text-xl">{item.icon}</span>
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+
+            <div className="w-1/3 text-center font-semibold truncate">{pageTitle}</div>
+
+            <div className="w-1/3 text-right truncate">{user?.email || 'User'}</div>
           </div>
-          
-          <Link to="/" className="btn btn-ghost normal-case text-xl ml-2">
-            🍺 Alcohol Tracker
-          </Link>
-        </div>
-        
-        {/* User Avatar - Right Side */}
-        <div className="flex-none">
-          <div className="dropdown dropdown-end">
-            <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar placeholder">
-              <div className="bg-primary text-primary-content w-10 rounded-full">
-                <span className="text-lg">{user?.email?.[0]?.toUpperCase() || 'U'}</span>
-              </div>
-            </div>
-            <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 mt-3 w-52 p-2 shadow-lg border border-base-300">
-              <li className="menu-title px-4 py-2">
-                <span className="text-xs">{user?.email}</span>
-              </li>
-              <li><button onClick={logout}>Logout</button></li>
-            </ul>
-          </div>
-        </div>
+        </header>
+
+        <main className="pt-[60px] p-4">
+          {children ?? <Outlet />}
+        </main>
       </div>
 
-      {/* Page Content */}
-      <main className="container mx-auto p-4 max-w-7xl">
-        <Outlet />
-      </main>
+      <div className="drawer-side z-50">
+        <label htmlFor="layout-drawer" aria-label="close sidebar" className="drawer-overlay" />
+        <aside className="w-72 min-h-full bg-base-200 pt-[60px]">
+          <ul className="menu p-4 gap-1">
+            {menuItems.map((item) => (
+              <li key={item.path}>
+                <Link to={item.path} className={isActive(item.path) ? 'active' : ''}>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <button type="button" onClick={logout} className="text-left">
+                Logout
+              </button>
+            </li>
+          </ul>
+        </aside>
+      </div>
     </div>
   );
 }
