@@ -3,6 +3,7 @@ import Button from '../components/Button';
 import { entriesService } from '../services/entriesService';
 import { useDrinksStore } from '../store/drinksStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { tr } from '../i18n/tr';
 import type { Entry } from '../types';
 
 type DayCell = {
@@ -25,12 +26,6 @@ const getDateKey = (date: Date) => {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
-
-const getMonthLabel = (date: Date) =>
-  date.toLocaleDateString('en-GB', {
-    month: 'long',
-    year: 'numeric',
-  });
 
 const getCalendarDays = (monthDate: Date): DayCell[] => {
   const startOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
@@ -83,7 +78,7 @@ const getTooltipText = (
   defaultDrinkPureAlcoholGrams: number | null,
 ): string => {
   if (!stats || stats.entries.length === 0) {
-    return 'No drinks';
+    return tr.calendar.noDrinks();
   }
 
   const topDrinks = stats.entries
@@ -93,15 +88,22 @@ const getTooltipText = (
 
   const defaultDrinkPart =
     defaultDrinkName && defaultDrinkPureAlcoholGrams && defaultDrinkPureAlcoholGrams > 0
-      ? ` • ≈ ${(stats.totalGrams / defaultDrinkPureAlcoholGrams).toFixed(1)} ${defaultDrinkName}`
+      ? tr.calendar.tooltipDefaultPart((stats.totalGrams / defaultDrinkPureAlcoholGrams).toFixed(1), defaultDrinkName)
       : '';
 
-  return `${stats.entries.length} entries • ${stats.totalGrams.toFixed(1)}g alcohol${defaultDrinkPart} • ${topDrinks}`;
+  return tr.calendar.tooltip(
+    String(stats.entries.length),
+    stats.totalGrams.toFixed(1),
+    defaultDrinkPart,
+    topDrinks,
+  );
 };
 
 export default function Calendar() {
   const { drinks, fetchDrinks } = useDrinksStore();
   const defaultDrinkId = useSettingsStore((state) => state.defaultDrinkId);
+  const language = useSettingsStore((state) => state.language);
+  const locale = language === 'cs' ? 'cs-CZ' : 'en-GB';
 
   const [monthDate, setMonthDate] = useState(() => {
     const now = new Date();
@@ -201,7 +203,7 @@ export default function Calendar() {
       const data = await entriesService.getAll(from, to);
       setEntries(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load calendar entries');
+      setError(err instanceof Error ? err.message : tr.calendar.errorLoad());
     } finally {
       setIsLoading(false);
     }
@@ -255,14 +257,14 @@ export default function Calendar() {
       setEntries((prev) => prev.map((entry) => (entry.id === entryId ? updatedEntry : entry)));
       cancelEditEntry();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update entry');
+      alert(err instanceof Error ? err.message : tr.calendar.errorUpdate());
     } finally {
       setIsEditing(false);
     }
   };
 
   const handleDeleteEntry = async (entryId: number) => {
-    if (!confirm('Are you sure you want to delete this entry?')) {
+    if (!confirm(tr.calendar.deleteConfirm())) {
       return;
     }
 
@@ -271,7 +273,7 @@ export default function Calendar() {
       await entriesService.delete(entryId);
       setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete entry');
+      alert(err instanceof Error ? err.message : tr.calendar.errorDelete());
     } finally {
       setIsDeletingId(null);
     }
@@ -302,7 +304,7 @@ export default function Calendar() {
       await loadMonthEntries(monthDate);
       closeModal();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to add entry');
+      alert(err instanceof Error ? err.message : tr.calendar.errorAdd());
     } finally {
       setIsSubmitting(false);
     }
@@ -319,14 +321,14 @@ export default function Calendar() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Calendar</h1>
+        <h1 className="text-3xl font-bold">{tr.calendar.title()}</h1>
 
         <div className="join">
           <Button type="button" variant="outline" className="join-item" onClick={goPrevMonth}>
             ←
           </Button>
           <Button type="button" variant="outline" className="join-item btn-ghost min-w-52 pointer-events-none">
-            {getMonthLabel(monthDate)}
+            {monthDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' })}
           </Button>
           <Button type="button" variant="outline" className="join-item" onClick={goNextMonth}>
             →
@@ -393,7 +395,7 @@ export default function Calendar() {
                           event.stopPropagation();
                           openAddModal(day.dateKey);
                         }}
-                        title="Add drink"
+                        title={tr.calendar.addButtonTitle()}
                       >
                         +
                       </Button>
@@ -401,16 +403,19 @@ export default function Calendar() {
 
                     {dayStats && dayStats.entries.length > 0 ? (
                       <div className="mt-auto space-y-1">
-                        <div className="badge badge-primary badge-sm">{dayStats.entries.length} entries</div>
-                        <div className="text-xs text-base-content/70">{dayStats.totalGrams.toFixed(1)}g alcohol</div>
+                        <div className="badge badge-primary badge-sm">{tr.calendar.entries(String(dayStats.entries.length))}</div>
+                        <div className="text-xs text-base-content/70">{tr.calendar.alcohol(dayStats.totalGrams.toFixed(1))}</div>
                         {defaultDrinkPureAlcoholGrams && defaultDrinkPureAlcoholGrams > 0 && selectedDefaultDrink && (
                           <div className="text-xs text-base-content/70">
-                            ≈ {(dayStats.totalGrams / defaultDrinkPureAlcoholGrams).toFixed(1)} {selectedDefaultDrink.name}
+                            {tr.stats.defaultDrinkEquivalent(
+                              (dayStats.totalGrams / defaultDrinkPureAlcoholGrams).toFixed(1),
+                              selectedDefaultDrink.name,
+                            )}
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="mt-auto text-xs text-base-content/50">No drinks</div>
+                      <div className="mt-auto text-xs text-base-content/50">{tr.calendar.noDrinks()}</div>
                     )}
                   </div>
                 );
@@ -423,12 +428,12 @@ export default function Calendar() {
       {isModalOpen && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg mb-4">Add drink for {selectedDate}</h3>
+            <h3 className="font-bold text-lg mb-4">{tr.calendar.addTitle(selectedDate)}</h3>
 
             <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Drink</span>
+                  <span className="label-text">{tr.calendar.drink()}</span>
                 </label>
                 <select
                   className="select select-bordered w-full"
@@ -437,7 +442,7 @@ export default function Calendar() {
                   disabled={drinks.length === 0 || isSubmitting}
                 >
                   {drinks.length === 0 ? (
-                    <option value="">No drinks available</option>
+                    <option value="">{tr.calendar.noDrinksAvailable()}</option>
                   ) : (
                     sortedDrinks.map((drink) => (
                       <option key={drink.id} value={drink.id}>
@@ -450,7 +455,7 @@ export default function Calendar() {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Quantity</span>
+                  <span className="label-text">{tr.calendar.quantity()}</span>
                 </label>
                 <input
                   type="number"
@@ -466,7 +471,7 @@ export default function Calendar() {
 
             <div className="modal-action">
               <Button type="button" variant="outline" onClick={closeModal} disabled={isSubmitting}>
-                Cancel
+                {tr.common.cancel()}
               </Button>
               <Button
                 type="button"
@@ -474,7 +479,7 @@ export default function Calendar() {
                 onClick={handleAddEntry}
                 disabled={isSubmitting || !selectedDrinkId}
               >
-                {isSubmitting ? 'Saving...' : 'Add'}
+                {isSubmitting ? tr.calendar.saving() : tr.common.add()}
               </Button>
             </div>
           </div>
@@ -486,9 +491,9 @@ export default function Calendar() {
           <div className="modal-box max-w-2xl">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <h3 className="font-bold text-lg">Entries for {selectedDayKey}</h3>
+                <h3 className="font-bold text-lg">{tr.calendar.dayTitle(selectedDayKey)}</h3>
                 <p className="text-sm text-base-content/70">
-                  {selectedDayEntries.length} entries • {selectedDayStats.totalGrams.toFixed(1)}g alcohol
+                  {tr.calendar.entries(String(selectedDayEntries.length))} • {tr.calendar.alcohol(selectedDayStats.totalGrams.toFixed(1))}
                 </p>
                 {selectedDayDefaultDrinks !== null && selectedDefaultDrink && (
                   <p className="text-sm text-base-content/70">
@@ -497,12 +502,12 @@ export default function Calendar() {
                 )}
               </div>
               <Button type="button" variant="primary" className="btn-sm" onClick={openAddModalFromDay}>
-                + Add drink
+                {tr.calendar.addDrink()}
               </Button>
             </div>
 
             {selectedDayEntries.length === 0 ? (
-              <div className="text-sm text-base-content/60 py-4">No drinks on this day.</div>
+              <div className="text-sm text-base-content/60 py-4">{tr.calendar.noDrinksDay()}</div>
             ) : (
               <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
                 {selectedDayEntries.map((entry) => {
@@ -520,7 +525,7 @@ export default function Calendar() {
                             {entry.drink.volumeMl}ml • {entry.drink.alcoholPct}%
                           </div>
                           <div className="text-xs text-base-content/60">
-                            {new Date(entry.date).toLocaleTimeString('en-GB', {
+                            {new Date(entry.date).toLocaleTimeString(locale, {
                               hour: '2-digit',
                               minute: '2-digit',
                             })}
@@ -550,17 +555,17 @@ export default function Calendar() {
                             onClick={() => handleSaveEdit(entry.id)}
                             disabled={isEditing}
                           >
-                            {isEditing ? 'Saving...' : 'Save'}
+                            {isEditing ? tr.calendar.saving() : tr.common.save()}
                           </Button>
                           <Button type="button" variant="outline" className="btn-ghost btn-sm" onClick={cancelEditEntry} disabled={isEditing}>
-                            Cancel
+                            {tr.common.cancel()}
                           </Button>
                         </div>
                       ) : (
                         <div className="mt-3 flex items-center gap-2">
-                          <div className="badge badge-outline">Quantity: {entry.quantity}x</div>
+                          <div className="badge badge-outline">{tr.calendar.quantity()}: {entry.quantity}x</div>
                           <Button type="button" variant="secondary" className="btn-sm" onClick={() => startEditEntry(entry)}>
-                            Edit
+                            {tr.common.edit()}
                           </Button>
                           <Button
                             type="button"
@@ -569,7 +574,7 @@ export default function Calendar() {
                             onClick={() => handleDeleteEntry(entry.id)}
                             disabled={isDeletingId === entry.id}
                           >
-                            {isDeletingId === entry.id ? 'Deleting...' : 'Delete'}
+                            {isDeletingId === entry.id ? tr.calendar.deleting() : tr.common.delete()}
                           </Button>
                         </div>
                       )}
@@ -581,7 +586,7 @@ export default function Calendar() {
 
             <div className="modal-action">
               <Button type="button" variant="outline" onClick={closeDayModal}>
-                Close
+                {tr.common.close()}
               </Button>
             </div>
           </div>

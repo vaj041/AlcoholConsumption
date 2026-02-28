@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDrinksStore } from '../store/drinksStore';
 import Button from '../components/Button';
+import { tr } from '../i18n/tr';
 
 interface DrinkForm {
   name: string;
@@ -24,12 +25,12 @@ export default function Drinks() {
       reset();
       setShowForm(false);
     } catch (error) {
-      console.error('Failed to add drink:', error);
+      console.error(tr.drinks.addFailed(), error);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm('Are you sure you want to delete this drink?')) {
+    if (confirm(tr.drinks.deleteConfirm())) {
       await deleteDrink(id);
     }
   };
@@ -37,26 +38,26 @@ export default function Drinks() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Drinks</h1>
+        <h1 className="text-3xl font-bold">{tr.drinks.title()}</h1>
         <Button variant="primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Cancel' : '+ Add Drink'}
+          {showForm ? tr.drinks.cancel() : tr.drinks.addDrink()}
         </Button>
       </div>
 
       {showForm && (
         <div className="card bg-base-100 shadow-xl mb-6">
           <div className="card-body">
-            <h2 className="card-title">New Drink</h2>
+            <h2 className="card-title">{tr.drinks.newDrink()}</h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Name</span>
+                    <span className="label-text">{tr.drinks.name()}</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Beer 10°"
+                  placeholder={tr.drinks.namePlaceholder()}
                   className={`input input-bordered ${errors.name ? 'input-error' : ''}`}
-                  {...register('name', { required: 'Name is required' })}
+                  {...register('name', { required: tr.drinks.validationNameRequired() })}
                 />
                 {errors.name && (
                   <label className="label">
@@ -68,15 +69,15 @@ export default function Drinks() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Volume (ml)</span>
+                    <span className="label-text">{tr.drinks.volume()}</span>
                   </label>
                   <input
                     type="number"
-                    placeholder="500"
+                    placeholder={tr.drinks.volumePlaceholder()}
                     className={`input input-bordered ${errors.volumeMl ? 'input-error' : ''}`}
                     {...register('volumeMl', { 
-                      required: 'Volume is required',
-                      min: { value: 1, message: 'Volume must be positive' }
+                      required: tr.drinks.validationVolumeRequired(),
+                      min: { value: 1, message: tr.drinks.validationVolumePositive() }
                     })}
                   />
                   {errors.volumeMl && (
@@ -88,17 +89,17 @@ export default function Drinks() {
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text">Alcohol %</span>
+                    <span className="label-text">{tr.drinks.alcohol()}</span>
                   </label>
                   <input
                     type="number"
                     step="0.1"
-                    placeholder="4.5"
+                    placeholder={tr.drinks.alcoholPlaceholder()}
                     className={`input input-bordered ${errors.alcoholPct ? 'input-error' : ''}`}
                     {...register('alcoholPct', { 
-                      required: 'Alcohol % is required',
-                      min: { value: 0, message: 'Must be positive' },
-                      max: { value: 100, message: 'Must be ≤ 100' }
+                      required: tr.drinks.validationAlcoholRequired(),
+                      min: { value: 0, message: tr.drinks.validationPositive() },
+                      max: { value: 100, message: tr.drinks.validationMax100() }
                     })}
                   />
                   {errors.alcoholPct && (
@@ -110,7 +111,7 @@ export default function Drinks() {
               </div>
 
               <Button type="submit" variant="primary" className="w-full">
-                Add Drink
+                {tr.drinks.addDrinkSubmit()}
               </Button>
             </form>
           </div>
@@ -141,7 +142,7 @@ export default function Drinks() {
                     className="btn-sm"
                     onClick={() => handleDelete(drink.id)}
                   >
-                    Delete
+                    {tr.drinks.delete()}
                   </Button>
                 </div>
               </div>
@@ -150,7 +151,7 @@ export default function Drinks() {
 
           {drinks.length === 0 && (
             <div className="text-center py-12 text-base-content/50">
-              No drinks yet. Add your first drink!
+              {tr.drinks.empty()}
             </div>
           )}
         </div>

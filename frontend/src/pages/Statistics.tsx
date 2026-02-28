@@ -3,6 +3,7 @@ import { statsService } from '../services/statsService';
 import Button from '../components/Button';
 import { useDrinksStore } from '../store/drinksStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { tr } from '../i18n/tr';
 import type { StatsResponse } from '../types';
 
 type PresetKey = 'prevWeek' | 'thisWeek' | 'prevMonth' | 'thisMonth';
@@ -74,16 +75,18 @@ const getPresetRange = (preset: PresetKey): DateRange => {
   };
 };
 
-const PRESET_LABELS: Record<PresetKey, string> = {
-  prevWeek: 'Previous Week',
-  thisWeek: 'This Week',
-  prevMonth: 'Previous Month',
-  thisMonth: 'This Month',
+const PRESET_LABELS: Record<PresetKey, () => string> = {
+  prevWeek: () => tr.stats.prevWeek(),
+  thisWeek: () => tr.stats.thisWeek(),
+  prevMonth: () => tr.stats.prevMonth(),
+  thisMonth: () => tr.stats.thisMonth(),
 };
 
 export default function Statistics() {
   const { drinks, fetchDrinks } = useDrinksStore();
   const defaultDrinkId = useSettingsStore((state) => state.defaultDrinkId);
+  const language = useSettingsStore((state) => state.language);
+  const locale = language === 'cs' ? 'cs-CZ' : 'en-GB';
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -98,7 +101,7 @@ export default function Statistics() {
       const data = await statsService.getStats(from, to);
       setStats(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load statistics');
+      setError(err instanceof Error ? err.message : tr.stats.errorLoad());
     } finally {
       setIsLoading(false);
     }
@@ -148,11 +151,11 @@ export default function Statistics() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Statistics</h1>
+      <h1 className="text-3xl font-bold mb-6">{tr.stats.title()}</h1>
 
       <div className="card bg-base-100 shadow-xl mb-6">
         <div className="card-body">
-          <h2 className="card-title">Preset Range</h2>
+          <h2 className="card-title">{tr.stats.presetRange()}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {(Object.keys(PRESET_LABELS) as PresetKey[]).map((preset) => (
               <Button
@@ -162,7 +165,7 @@ export default function Statistics() {
                 variant={activePreset === preset ? 'primary' : 'outline'}
                 disabled={isLoading}
               >
-                {PRESET_LABELS[preset]}
+                {PRESET_LABELS[preset]()}
               </Button>
             ))}
           </div>
@@ -171,11 +174,11 @@ export default function Statistics() {
 
       <div className="card bg-base-100 shadow-xl mb-6">
         <div className="card-body">
-          <h2 className="card-title">Custom Range (Optional)</h2>
+          <h2 className="card-title">{tr.stats.customRange()}</h2>
           <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap">
             <div className="form-control flex-1">
               <label className="label">
-                <span className="label-text">From</span>
+                <span className="label-text">{tr.stats.from()}</span>
               </label>
               <input
                 type="date"
@@ -190,7 +193,7 @@ export default function Statistics() {
             </div>
             <div className="form-control flex-1">
               <label className="label">
-                <span className="label-text">To</span>
+                <span className="label-text">{tr.stats.to()}</span>
               </label>
               <input
                 type="date"
@@ -204,7 +207,7 @@ export default function Statistics() {
               />
             </div>
             <Button type="submit" variant="primary" disabled={isLoading}>
-              {isLoading ? 'Loading...' : 'Load Statistics'}
+              {isLoading ? tr.common.loading() : tr.stats.load()}
             </Button>
           </form>
         </div>
@@ -221,14 +224,14 @@ export default function Statistics() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="card bg-primary text-primary-content shadow-xl">
               <div className="card-body">
-                <h2 className="card-title">Total Pure Alcohol</h2>
+                <h2 className="card-title">{tr.stats.totalPureAlcohol()}</h2>
                 <p className="text-3xl font-bold">{stats.total.pureAlcoholGrams.toFixed(1)}g</p>
                 {totalDefaultDrinks !== null && selectedDefaultDrink ? (
                   <p className="text-sm opacity-90">
-                    ≈ {totalDefaultDrinks.toFixed(1)} {selectedDefaultDrink.name}
+                    {tr.stats.defaultDrinkEquivalent(totalDefaultDrinks.toFixed(1), selectedDefaultDrink.name)}
                   </p>
                 ) : (
-                  <p className="text-sm opacity-80">Select default drink in Settings</p>
+                  <p className="text-sm opacity-80">{tr.stats.selectDefaultDrink()}</p>
                 )}
                 <p className="text-sm opacity-80">{stats.total.pureAlcoholMl.toFixed(1)}ml</p>
               </div>
@@ -236,49 +239,49 @@ export default function Statistics() {
 
             <div className="card bg-secondary text-secondary-content shadow-xl">
               <div className="card-body">
-                <h2 className="card-title">Total Entries</h2>
+                <h2 className="card-title">{tr.stats.totalEntries()}</h2>
                 <p className="text-3xl font-bold">{stats.total.entries}</p>
-                <p className="text-sm opacity-80">drinks consumed</p>
+                <p className="text-sm opacity-80">{tr.stats.drinksConsumed()}</p>
               </div>
             </div>
 
             <div className="card bg-accent text-accent-content shadow-xl">
               <div className="card-body">
-                <h2 className="card-title">Daily Average</h2>
+                <h2 className="card-title">{tr.stats.dailyAverage()}</h2>
                 <p className="text-3xl font-bold">{dailyAverageGrams.toFixed(1)}g</p>
                 {dailyAverageDefaultDrinks !== null && selectedDefaultDrink ? (
                   <p className="text-sm opacity-90">
-                    ≈ {dailyAverageDefaultDrinks.toFixed(1)} {selectedDefaultDrink.name}
+                    {tr.stats.defaultDrinkEquivalent(dailyAverageDefaultDrinks.toFixed(1), selectedDefaultDrink.name)}
                   </p>
                 ) : (
-                  <p className="text-sm opacity-80">Select default drink in Settings</p>
+                  <p className="text-sm opacity-80">{tr.stats.selectDefaultDrink()}</p>
                 )}
-                <p className="text-xs opacity-70">per day</p>
+                <p className="text-xs opacity-70">{tr.stats.perDay()}</p>
               </div>
             </div>
           </div>
 
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
-              <h2 className="card-title">Daily Breakdown</h2>
+              <h2 className="card-title">{tr.stats.dailyBreakdown()}</h2>
               {stats.daily.length === 0 ? (
-                <p className="text-center text-base-content/60 py-8">No data for selected period</p>
+                <p className="text-center text-base-content/60 py-8">{tr.stats.noDataPeriod()}</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="table table-zebra">
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>Entries</th>
-                        <th>Pure Alcohol (ml)</th>
-                        <th>Pure Alcohol (g)</th>
+                        <th>{tr.stats.tableDate()}</th>
+                        <th>{tr.stats.tableEntries()}</th>
+                        <th>{tr.stats.tableMl()}</th>
+                        <th>{tr.stats.tableG()}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {stats.daily.map((day) => (
                         <tr key={day.date}>
                           <td>
-                            {new Date(day.date).toLocaleDateString('en-GB', {
+                            {new Date(day.date).toLocaleDateString(locale, {
                               year: 'numeric',
                               month: 'short',
                               day: 'numeric',
@@ -302,7 +305,7 @@ export default function Statistics() {
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <p className="text-center text-base-content/60">
-              Select a date range and click "Load Statistics" to view your consumption data
+              {tr.stats.emptyHint()}
             </p>
           </div>
         </div>

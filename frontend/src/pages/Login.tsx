@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useState } from 'react';
 import Button from '../components/Button';
+import { tr } from '../i18n/tr';
 
 interface LoginForm {
   email: string;
@@ -22,8 +23,8 @@ export default function Login() {
       navigate('/');
     } catch (err: unknown) {
       const errorMessage = err && typeof err === 'object' && 'response' in err
-        ? ((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Login failed')
-        : 'Login failed';
+        ? ((err as { response?: { data?: { error?: string } } }).response?.data?.error || tr.auth.loginFailed())
+        : tr.auth.loginFailed();
       setError(errorMessage);
     }
   };
@@ -32,8 +33,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-base-200">
       <div className="card w-96 bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title text-2xl font-bold justify-center">🍺 Alcohol Tracker</h2>
-          <p className="text-center text-base-content/70 mb-4">Login to your account</p>
+          <h2 className="card-title text-2xl font-bold justify-center">🍺 {tr.auth.appTitle()}</h2>
+          <p className="text-center text-base-content/70 mb-4">{tr.auth.loginTitle()}</p>
           
           {error && (
             <div className="alert alert-error">
@@ -44,17 +45,17 @@ export default function Login() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Email</span>
+                  <span className="label-text">{tr.auth.email()}</span>
               </label>
               <input
                 type="email"
                 placeholder="email@example.com"
                 className={`input input-bordered ${errors.email ? 'input-error' : ''}`}
                 {...register('email', { 
-                  required: 'Email is required',
+                  required: tr.auth.emailRequired(),
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Invalid email address'
+                    message: tr.auth.invalidEmail()
                   }
                 })}
               />
@@ -67,17 +68,17 @@ export default function Login() {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Password</span>
+                  <span className="label-text">{tr.auth.password()}</span>
               </label>
               <input
                 type="password"
                 placeholder="••••••••"
                 className={`input input-bordered ${errors.password ? 'input-error' : ''}`}
                 {...register('password', { 
-                  required: 'Password is required',
+                  required: tr.auth.passwordRequired(),
                   minLength: {
                     value: 6,
-                    message: 'Password must be at least 6 characters'
+                    message: tr.auth.passwordMin()
                   }
                 })}
               />
@@ -95,15 +96,15 @@ export default function Login() {
                 className={isLoading ? 'loading' : ''}
                 disabled={isLoading}
               >
-                {isLoading ? 'Logging in...' : 'Login'}
+                {isLoading ? tr.auth.loggingIn() : tr.auth.login()}
               </Button>
             </div>
           </form>
 
-          <div className="divider">OR</div>
+          <div className="divider">{tr.auth.or()}</div>
 
           <Button variant="outline" className="btn-sm" onClick={() => navigate('/register')}>
-            Create new account
+            {tr.auth.createAccount()}
           </Button>
         </div>
       </div>

@@ -15,6 +15,7 @@ import { useSettingsStore } from './store/settingsStore';
 function App() {
   const { token, loadUser } = useAuthStore();
   const theme = useSettingsStore((state) => state.theme);
+  const language = useSettingsStore((state) => state.language);
 
   useEffect(() => {
     if (token) {
@@ -25,6 +26,10 @@ function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('lang', language);
+  }, [language]);
 
   return (
     <BrowserRouter>

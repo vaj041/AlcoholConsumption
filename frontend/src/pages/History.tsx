@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { entriesService } from '../services/entriesService';
 import Button from '../components/Button';
+import { tr } from '../i18n/tr';
+import { useSettingsStore } from '../store/settingsStore';
 import type { Entry } from '../types';
 
 export default function History() {
+  const language = useSettingsStore((state) => state.language);
+  const locale = language === 'cs' ? 'cs-CZ' : 'en-GB';
   const [entries, setEntries] = useState<Entry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -22,7 +26,7 @@ export default function History() {
       const data = await entriesService.getAll();
       setEntries(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load entries');
+      setError(err instanceof Error ? err.message : tr.history.errorLoad());
     } finally {
       setIsLoading(false);
     }
@@ -52,18 +56,18 @@ export default function History() {
       setEntries(entries.map((e) => (e.id === updatedEntry.id ? updatedEntry : e)));
       handleCancelEdit();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update entry');
+      alert(err instanceof Error ? err.message : tr.history.errorUpdate());
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this entry?')) return;
+    if (!confirm(tr.history.deleteConfirm())) return;
 
     try {
       await entriesService.delete(id);
       setEntries(entries.filter((e) => e.id !== id));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete entry');
+      alert(err instanceof Error ? err.message : tr.history.errorDelete());
     }
   };
 
@@ -76,7 +80,7 @@ export default function History() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
+    return date.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -88,7 +92,7 @@ export default function History() {
   if (isLoading) {
     return (
       <div>
-        <h1 className="text-3xl font-bold mb-6">History</h1>
+        <h1 className="text-3xl font-bold mb-6">{tr.history.title()}</h1>
         <div className="flex justify-center">
           <span className="loading loading-spinner loading-lg"></span>
         </div>
@@ -98,7 +102,7 @@ export default function History() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">History</h1>
+      <h1 className="text-3xl font-bold mb-6">{tr.history.title()}</h1>
 
       {error && (
         <div className="alert alert-error mb-4">
@@ -109,7 +113,7 @@ export default function History() {
       {entries.length === 0 ? (
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
-            <p className="text-center text-base-content/60">No entries yet. Start tracking your consumption!</p>
+            <p className="text-center text-base-content/60">{tr.history.empty()}</p>
           </div>
         </div>
       ) : (
@@ -125,16 +129,16 @@ export default function History() {
                       <p className="text-sm text-base-content/60">{formatDate(entry.date)}</p>
                       <div className="mt-2 space-y-1">
                         <p>
-                          <span className="font-semibold">Quantity:</span> {entry.quantity}x
+                          <span className="font-semibold">{tr.history.quantity()}:</span> {entry.quantity}x
                         </p>
                         <p>
-                          <span className="font-semibold">Volume:</span> {entry.drink.volumeMl}ml × {entry.quantity} = {(entry.drink.volumeMl * entry.quantity).toFixed(0)}ml
+                          <span className="font-semibold">{tr.history.volume()}:</span> {entry.drink.volumeMl}ml × {entry.quantity} = {(entry.drink.volumeMl * entry.quantity).toFixed(0)}ml
                         </p>
                         <p>
-                          <span className="font-semibold">Alcohol:</span> {entry.drink.alcoholPct}%
+                          <span className="font-semibold">{tr.history.alcohol()}:</span> {entry.drink.alcoholPct}%
                         </p>
                         <p className="text-lg font-bold text-accent">
-                          Pure alcohol: {pureAlcohol.ml}ml ({pureAlcohol.grams}g)
+                          {tr.history.pureAlcohol()}: {pureAlcohol.ml}ml ({pureAlcohol.grams}g)
                         </p>
                       </div>
                     </div>
@@ -144,14 +148,14 @@ export default function History() {
                         variant="secondary"
                         className="btn-sm"
                       >
-                        Edit
+                        {tr.common.edit()}
                       </Button>
                       <Button
                         onClick={() => handleDelete(entry.id)}
                         variant="danger"
                         className="btn-sm"
                       >
-                        Delete
+                        {tr.common.delete()}
                       </Button>
                     </div>
                   </div>
@@ -166,12 +170,12 @@ export default function History() {
       {editingEntry && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg mb-4">Edit Entry: {editingEntry.drink.name}</h3>
+            <h3 className="font-bold text-lg mb-4">{tr.history.editTitle(editingEntry.drink.name)}</h3>
             
             <div className="space-y-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Quantity</span>
+                  <span className="label-text">{tr.history.quantity()}</span>
                 </label>
                 <input
                   type="number"
@@ -186,7 +190,7 @@ export default function History() {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Date</span>
+                  <span className="label-text">{tr.dashboard.date()}</span>
                 </label>
                 <input
                   type="date"
@@ -202,7 +206,7 @@ export default function History() {
                 Cancel
               </Button>
               <Button onClick={handleSaveEdit} variant="primary">
-                Save
+                {tr.common.save()}
               </Button>
             </div>
           </div>

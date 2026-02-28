@@ -2,12 +2,13 @@ import { useEffect, useMemo } from 'react';
 import Button from '../components/Button';
 import { useDrinksStore } from '../store/drinksStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { tr } from '../i18n/tr';
 
 const pureAlcoholGramsPerDrink = (volumeMl: number, alcoholPct: number) => volumeMl * (alcoholPct / 100) * 0.789;
 
 export default function Settings() {
   const { drinks, fetchDrinks, isLoading } = useDrinksStore();
-  const { theme, defaultDrinkId, setTheme, setDefaultDrinkId } = useSettingsStore();
+  const { theme, language, defaultDrinkId, setTheme, setLanguage, setDefaultDrinkId } = useSettingsStore();
 
   useEffect(() => {
     fetchDrinks();
@@ -29,13 +30,13 @@ export default function Settings() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Settings</h1>
+      <h1 className="text-3xl font-bold mb-6">{tr.settings.title()}</h1>
 
       <div className="grid gap-6">
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
-            <h2 className="card-title">Theme</h2>
-            <p className="text-sm text-base-content/70 mb-3">Choose app appearance.</p>
+            <h2 className="card-title">{tr.settings.themeTitle()}</h2>
+            <p className="text-sm text-base-content/70 mb-3">{tr.settings.themeDescription()}</p>
 
             <div className="flex gap-3">
               <Button
@@ -43,14 +44,14 @@ export default function Settings() {
                 variant={theme === 'light' ? 'primary' : 'outline'}
                 onClick={() => setTheme('light')}
               >
-                Light
+                {tr.settings.themeLight()}
               </Button>
               <Button
                 type="button"
                 variant={theme === 'dark' ? 'primary' : 'outline'}
                 onClick={() => setTheme('dark')}
               >
-                Dark
+                {tr.settings.themeDark()}
               </Button>
             </div>
           </div>
@@ -58,14 +59,38 @@ export default function Settings() {
 
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
-            <h2 className="card-title">Default Drink</h2>
+            <h2 className="card-title">{tr.settings.languageTitle()}</h2>
+            <p className="text-sm text-base-content/70 mb-3">{tr.settings.languageDescription()}</p>
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant={language === 'en' ? 'primary' : 'outline'}
+                onClick={() => setLanguage('en')}
+              >
+                {tr.settings.languageEn()}
+              </Button>
+              <Button
+                type="button"
+                variant={language === 'cs' ? 'primary' : 'outline'}
+                onClick={() => setLanguage('cs')}
+              >
+                {tr.settings.languageCs()}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">{tr.settings.defaultDrinkTitle()}</h2>
             <p className="text-sm text-base-content/70 mb-3">
-              This drink will be used in Statistics to show average consumed drinks per day.
+              {tr.settings.defaultDrinkDescription()}
             </p>
 
             <div className="form-control max-w-xl">
               <label className="label">
-                <span className="label-text">Default drink</span>
+                <span className="label-text">{tr.settings.defaultDrinkLabel()}</span>
               </label>
               <select
                 className="select select-bordered"
@@ -73,7 +98,7 @@ export default function Settings() {
                 onChange={(e) => setDefaultDrinkId(e.target.value ? Number(e.target.value) : null)}
                 disabled={isLoading}
               >
-                <option value="">No default drink</option>
+                <option value="">{tr.settings.defaultDrinkNone()}</option>
                 {sortedDrinks.map((drink) => (
                   <option key={drink.id} value={drink.id}>
                     {drink.name} ({drink.volumeMl}ml, {drink.alcoholPct}%)
@@ -84,8 +109,10 @@ export default function Settings() {
 
             {selectedDefaultDrink && (
               <div className="mt-4 p-3 rounded-lg bg-base-200 text-sm">
-                1 {selectedDefaultDrink.name} ={' '}
-                {pureAlcoholGramsPerDrink(selectedDefaultDrink.volumeMl, selectedDefaultDrink.alcoholPct).toFixed(1)}g pure alcohol
+                {tr.settings.defaultDrinkPureAlcohol(
+                  selectedDefaultDrink.name,
+                  pureAlcoholGramsPerDrink(selectedDefaultDrink.volumeMl, selectedDefaultDrink.alcoholPct).toFixed(1),
+                )}
               </div>
             )}
           </div>

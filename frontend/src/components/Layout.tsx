@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import Button from './Button';
+import { tr } from '../i18n/tr';
 
 type LayoutProps = {
   children?: ReactNode;
@@ -14,21 +15,21 @@ export default function Layout({ children }: LayoutProps) {
   const isActive = (path: string) => location.pathname === path;
 
   const pageTitleMap: Record<string, string> = {
-    '/': 'Dashboard',
-    '/drinks': 'Drinks',
-    '/calendar': 'Calendar',
-    '/stats': 'Stats',
-    '/settings': 'Settings',
+    '/': tr.layout.pageTitleDashboard(),
+    '/drinks': tr.layout.pageTitleDrinks(),
+    '/calendar': tr.layout.pageTitleCalendar(),
+    '/stats': tr.layout.pageTitleStats(),
+    '/settings': tr.layout.pageTitleSettings(),
   };
 
   const pageTitle = pageTitleMap[location.pathname] || 'Dashboard';
 
   const menuItems = [
-    { path: '/', label: 'Dashboard' },
-    { path: '/drinks', label: 'Drinks' },
-    { path: '/calendar', label: 'Calendar' },
-    { path: '/stats', label: 'Stats' },
-    { path: '/settings', label: 'Settings' },
+    { path: '/', label: tr.layout.menuDashboard() },
+    { path: '/drinks', label: tr.layout.menuDrinks() },
+    { path: '/calendar', label: tr.layout.menuCalendar() },
+    { path: '/stats', label: tr.layout.menuStats() },
+    { path: '/settings', label: tr.layout.menuSettings() },
   ];
 
   return (
@@ -48,7 +49,7 @@ export default function Layout({ children }: LayoutProps) {
 
             <div className="w-1/3 text-center font-semibold truncate">{pageTitle}</div>
 
-            <div className="w-1/3 text-right truncate">{user?.email || 'User'}</div>
+            <div className="w-1/3 text-right truncate">{user?.email || tr.layout.userFallback()}</div>
           </div>
         </header>
 
@@ -72,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
             ))}
             <li>
               <Button type="button" variant="outline" onClick={logout} className="w-full justify-start border-0 shadow-none">
-                Logout
+                {tr.layout.menuLogout()}
               </Button>
             </li>
           </ul>
