@@ -64,6 +64,8 @@ export const tr = {
     translationsSaving: () => translate('settings.translations.saving', 'Saving...'),
     translationsSuccess: () => translate('settings.translations.success', 'Translation saved.'),
     translationsError: () => translate('settings.translations.error', 'Failed to save translation.'),
+    translationsAdminOnly: () =>
+      translate('settings.translations.adminOnly', 'Only admins can manage translation overrides.'),
     translationsValidationCode: () => translate('settings.translations.validationCode', 'Term code is required.'),
     translationsValidationText: () =>
       translate('settings.translations.validationText', 'Translated text is required.'),

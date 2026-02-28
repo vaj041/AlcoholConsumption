@@ -52,6 +52,7 @@ export const EN_DICTIONARY: TranslationDictionary = {
   'settings.translations.saving': 'Saving...',
   'settings.translations.success': 'Translation saved.',
   'settings.translations.error': 'Failed to save translation.',
+  'settings.translations.adminOnly': 'Only admins can manage translation overrides.',
   'settings.translations.validationCode': 'Term code is required.',
   'settings.translations.validationText': 'Translated text is required.',
 

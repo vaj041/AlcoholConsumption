@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { prisma } from '../prisma/client';
 
 // Extend Express Request type to include userId
 declare global {
@@ -37,5 +38,32 @@ export const authenticate = (
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' });
     return;
+  }
+};
+
+export const requireAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  if (!req.userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { role: true },
+    });
+
+    if (!user || user.role !== 'admin') {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
 };

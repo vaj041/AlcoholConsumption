@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../prisma/client';
-import { authenticate } from '../middleware/auth';
+import { authenticate, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -46,7 +46,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-router.post('/bulk-upsert', authenticate, async (req: Request, res: Response): Promise<void> => {
+router.post('/bulk-upsert', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { lang, items } = req.body as BulkUpsertBody;
 

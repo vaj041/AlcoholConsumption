@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import Button from '../components/Button';
+import { useAuthStore } from '../store/authStore';
 import { useDrinksStore } from '../store/drinksStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { tr } from '../i18n/tr';
@@ -11,6 +12,7 @@ const pureAlcoholGramsPerDrink = (volumeMl: number, alcoholPct: number) => volum
 
 export default function Settings() {
   const { drinks, fetchDrinks, isLoading } = useDrinksStore();
+  const authUser = useAuthStore((state) => state.user);
   const { theme, language, defaultDrinkId, setTheme, setLanguage, setDefaultDrinkId } = useSettingsStore();
   const [adminLang, setAdminLang] = useState<SupportedLanguage>(language);
   const [termCode, setTermCode] = useState('');
@@ -41,6 +43,7 @@ export default function Settings() {
   }, [drinks, defaultDrinkId]);
 
   const selectedDefaultDrink = drinks.find((drink) => drink.id === defaultDrinkId) ?? null;
+  const isAdmin = authUser?.role === 'admin';
 
   const handleSaveTranslation = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -177,19 +180,25 @@ export default function Settings() {
             <h2 className="card-title">{tr.settings.translationsTitle()}</h2>
             <p className="text-sm text-base-content/70 mb-3">{tr.settings.translationsDescription()}</p>
 
-            {translationSuccess && (
+            {!isAdmin && (
+              <div className="alert alert-warning mb-4">
+                <span>{tr.settings.translationsAdminOnly()}</span>
+              </div>
+            )}
+
+            {isAdmin && translationSuccess && (
               <div className="alert alert-success mb-4">
                 <span>{translationSuccess}</span>
               </div>
             )}
 
-            {translationError && (
+            {isAdmin && translationError && (
               <div className="alert alert-error mb-4">
                 <span>{translationError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSaveTranslation} className="grid gap-4 max-w-2xl">
+            {isAdmin && <form onSubmit={handleSaveTranslation} className="grid gap-4 max-w-2xl">
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">{tr.settings.translationsLanguage()}</span>
@@ -252,7 +261,7 @@ export default function Settings() {
                   {isSavingTranslation ? tr.settings.translationsSaving() : tr.settings.translationsSave()}
                 </Button>
               </div>
-            </form>
+            </form>}
           </div>
         </div>
       </div>

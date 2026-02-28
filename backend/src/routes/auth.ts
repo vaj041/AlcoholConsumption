@@ -29,23 +29,29 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const usersCount = await prisma.user.count();
+    const role = usersCount === 0 ? 'admin' : 'user';
+
     // Create user
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
+        role,
       },
     });
 
     // Generate JWT token
     const secret = process.env.JWT_SECRET || 'your-secret-key';
-    const token = jwt.sign({ userId: user.id }, secret, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id, role: user.role }, secret, { expiresIn: '7d' });
 
     res.status(201).json({
       token,
       user: {
         id: user.id,
         email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
@@ -84,13 +90,15 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
     // Generate JWT token
     const secret = process.env.JWT_SECRET || 'your-secret-key';
-    const token = jwt.sign({ userId: user.id }, secret, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id, role: user.role }, secret, { expiresIn: '7d' });
 
     res.json({
       token,
       user: {
         id: user.id,
         email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
@@ -107,6 +115,7 @@ router.get('/me', authenticate, async (req: Request, res: Response): Promise<voi
       select: {
         id: true,
         email: true,
+        role: true,
         createdAt: true,
       },
     });
