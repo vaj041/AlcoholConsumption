@@ -1,20 +1,38 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 import { prisma } from '../prisma/client';
 import { authenticate, requireAdmin } from '../middleware/auth';
+import { authRateLimiter } from '../middleware/rateLimit';
 
 const router = Router();
 
-// Register
-router.post('/register', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { email, password } = req.body;
+const authCredentialsSchema = z
+  .object({
+    email: z.string().trim().email().max(255),
+    password: z.string().min(6).max(128),
+  })
+  .transform(({ email, password }) => ({
+    email: email.toLowerCase(),
+    password,
+  }));
 
-    if (!email || !password) {
-      res.status(400).json({ error: 'Email and password are required' });
+const updateRoleSchema = z.object({
+  role: z.enum(['user', 'admin']),
+});
+
+// Register
+router.post('/register', authRateLimiter, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const parsedCredentials = authCredentialsSchema.safeParse(req.body);
+    if (!parsedCredentials.success) {
+      const firstError = parsedCredentials.error.issues[0]?.message || 'Invalid request body';
+      res.status(400).json({ error: firstError });
       return;
     }
+
+    const { email, password } = parsedCredentials.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -61,14 +79,16 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Login
-router.post('/login', async (req: Request, res: Response): Promise<void> => {
+router.post('/login', authRateLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({ error: 'Email and password are required' });
+    const parsedCredentials = authCredentialsSchema.safeParse(req.body);
+    if (!parsedCredentials.success) {
+      const firstError = parsedCredentials.error.issues[0]?.message || 'Invalid request body';
+      res.status(400).json({ error: firstError });
       return;
     }
+
+    const { email, password } = parsedCredentials.data;
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -156,7 +176,6 @@ router.get('/admin/users', authenticate, requireAdmin, async (_req: Request, res
 router.patch('/admin/users/:id/role', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { role } = req.body as { role?: string };
     const userId = Number(id);
 
     if (!Number.isInteger(userId) || userId <= 0) {
@@ -164,10 +183,13 @@ router.patch('/admin/users/:id/role', authenticate, requireAdmin, async (req: Re
       return;
     }
 
-    if (role !== 'user' && role !== 'admin') {
+    const parsedBody = updateRoleSchema.safeParse(req.body);
+    if (!parsedBody.success) {
       res.status(400).json({ error: 'Role must be user or admin' });
       return;
     }
+
+    const { role } = parsedBody.data;
 
     const targetUser = await prisma.user.findUnique({
       where: { id: userId },
