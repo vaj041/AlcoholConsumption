@@ -99,3 +99,28 @@ Content-Type: application/json
     }
   ]
 }
+
+### Login as non-admin (example)
+# @name loginNonAdmin
+POST http://localhost:3001/auth/login
+Content-Type: application/json
+
+{
+  "email": "user-nonadmin@test.cz",
+  "password": "heslo123"
+}
+
+### Bulk Upsert Translations as non-admin (expected 403)
+POST http://localhost:3001/translations/bulk-upsert
+Authorization: Bearer {{loginNonAdmin.response.body.token}}
+Content-Type: application/json
+
+{
+  "lang": "cs",
+  "items": [
+    {
+      "code": "layout.menu.stats",
+      "text": "Statistiky"
+    }
+  ]
+}

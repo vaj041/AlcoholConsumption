@@ -51,6 +51,9 @@ Aplikace podporuje **uživatelské účty**, aby bylo možné synchronizovat dat
 - Autentizace pomocí JWT tokenu
 - Endpoint `/auth/me` pro ověření přihlášení
 - Všechna data (drinky, záznamy, statistiky) jsou vázána na `userId`
+- Role uživatele: `user` / `admin`
+- První registrovaný účet získá roli `admin`
+- Admin-only akce: správa DB override překladů
 
 ### **3.2 Definice drinků**
 Každý drink obsahuje:
@@ -113,6 +116,14 @@ DELETE /entries/:id
 GET /stats?from=...&to=...
 ```
 
+### **Translations**
+```
+GET  /translations?lang=...
+POST /translations/bulk-upsert
+```
+
+`/translations/bulk-upsert` je dostupný pouze pro roli `admin`.
+
 Všechny endpointy kromě `/auth/*` vyžadují JWT token.
 
 ---
@@ -124,6 +135,7 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
+  role      String   @default("user")
   drinks    Drink[]
   entries   Entry[]
 }
