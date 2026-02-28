@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { prisma } from '../prisma/client';
 import { authenticate, requireAdmin } from '../middleware/auth';
 import { authRateLimiter } from '../middleware/rateLimit';
+import { logAdminAction } from '../utils/auditLog';
 
 const router = Router();
 
@@ -20,6 +21,19 @@ const authCredentialsSchema = z
 
 const updateRoleSchema = z.object({
   role: z.enum(['user', 'admin']),
+});
+
+const listAuditLogsQuerySchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((value) => (value ? Number(value) : 1))
+    .pipe(z.number().int().min(1)),
+  pageSize: z
+    .string()
+    .optional()
+    .transform((value) => (value ? Number(value) : 20))
+    .pipe(z.number().int().min(1).max(100)),
 });
 
 // Register
@@ -172,6 +186,69 @@ router.get('/admin/users', authenticate, requireAdmin, async (_req: Request, res
   }
 });
 
+// Admin - list audit logs
+router.get('/admin/audit-logs', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const parsedQuery = listAuditLogsQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      res.status(400).json({ error: 'Invalid pagination query' });
+      return;
+    }
+
+    const { page, pageSize } = parsedQuery.data;
+    const skip = (page - 1) * pageSize;
+
+    const [total, rows] = await prisma.$transaction([
+      prisma.auditLog.count(),
+      prisma.auditLog.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+        include: {
+          actorUser: {
+            select: {
+              id: true,
+              email: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const logs = rows.map((row) => {
+      let parsedDetails: Record<string, unknown> | null = null;
+
+      if (row.details) {
+        try {
+          parsedDetails = JSON.parse(row.details) as Record<string, unknown>;
+        } catch {
+          parsedDetails = null;
+        }
+      }
+
+      return {
+        id: row.id,
+        action: row.action,
+        targetType: row.targetType,
+        targetId: row.targetId,
+        details: parsedDetails,
+        createdAt: row.createdAt,
+        actorUser: row.actorUser,
+      };
+    });
+
+    res.json({
+      page,
+      pageSize,
+      total,
+      logs,
+    });
+  } catch (error) {
+    console.error('Get audit logs error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Admin - update user role
 router.patch('/admin/users/:id/role', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -229,6 +306,20 @@ router.patch('/admin/users/:id/role', authenticate, requireAdmin, async (req: Re
         createdAt: true,
       },
     });
+
+    if (req.userId) {
+      await logAdminAction({
+        actorUserId: req.userId,
+        action: 'user.role.update',
+        targetType: 'user',
+        targetId: String(updatedUser.id),
+        details: {
+          previousRole: targetUser.role,
+          nextRole: updatedUser.role,
+          targetEmail: updatedUser.email,
+        },
+      });
+    }
 
     res.json(updatedUser);
   } catch (error) {

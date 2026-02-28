@@ -22,6 +22,7 @@ export default function Layout({ children }: LayoutProps) {
     '/settings': tr.layout.pageTitleSettings(),
     '/translations': tr.layout.pageTitleTranslations(),
     '/users': tr.layout.pageTitleUsers(),
+    '/audit-logs': tr.layout.pageTitleAuditLogs(),
   };
 
   const pageTitle = pageTitleMap[location.pathname] || 'Dashboard';
@@ -36,6 +37,7 @@ export default function Layout({ children }: LayoutProps) {
       ? [
           { path: '/translations', label: tr.layout.menuTranslations() },
           { path: '/users', label: tr.layout.menuUsers() },
+          { path: '/audit-logs', label: tr.layout.menuAuditLogs() },
         ]
       : []),
   ];

@@ -45,6 +45,26 @@ export interface UpdateUserRoleData {
   role: UserRole;
 }
 
+export interface AuditLog {
+  id: number;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  details: Record<string, unknown> | null;
+  createdAt: string;
+  actorUser: {
+    id: number;
+    email: string;
+  };
+}
+
+export interface AuditLogsResponse {
+  page: number;
+  pageSize: number;
+  total: number;
+  logs: AuditLog[];
+}
+
 export interface CreateEntryData {
   drinkId: number;
   quantity: number;

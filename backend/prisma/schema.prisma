@@ -18,6 +18,21 @@ model User {
   createdAt DateTime @default(now())
   drinks    Drink[]
   entries   Entry[]
+  auditLogs AuditLog[]
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  actorUserId Int
+  action      String
+  targetType  String
+  targetId    String?
+  details     String?
+  createdAt   DateTime @default(now())
+  actorUser   User     @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+
+  @@index([actorUserId])
+  @@index([createdAt])
 }
 
 model Drink {

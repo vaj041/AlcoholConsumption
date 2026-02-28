@@ -19,6 +19,7 @@ export const EN_DICTIONARY: TranslationDictionary = {
   'layout.pageTitle.settings': 'Settings',
   'layout.pageTitle.translations': 'Translations',
   'layout.pageTitle.users': 'Users',
+  'layout.pageTitle.auditLogs': 'Audit Logs',
   'layout.menu.dashboard': 'Dashboard',
   'layout.menu.drinks': 'Drinks',
   'layout.menu.calendar': 'Calendar',
@@ -26,6 +27,7 @@ export const EN_DICTIONARY: TranslationDictionary = {
   'layout.menu.settings': 'Settings',
   'layout.menu.translations': 'Translations',
   'layout.menu.users': 'Users',
+  'layout.menu.auditLogs': 'Audit Logs',
   'layout.menu.logout': 'Logout',
   'layout.userFallback': 'User',
 
@@ -220,6 +222,22 @@ export const EN_DICTIONARY: TranslationDictionary = {
   'users.currentUser': 'you',
   'users.noData': 'No users found.',
   'users.lastAdmin': 'Last admin cannot be demoted.',
+
+  'audit.title': 'Audit Logs',
+  'audit.description': 'Track admin actions for accountability and troubleshooting.',
+  'audit.adminOnly': 'Only admins can view audit logs.',
+  'audit.errorLoad': 'Failed to load audit logs.',
+  'audit.empty': 'No audit logs found.',
+  'audit.refresh': 'Refresh',
+  'audit.table.createdAt': 'Created',
+  'audit.table.actor': 'Actor',
+  'audit.table.action': 'Action',
+  'audit.table.target': 'Target',
+  'audit.table.details': 'Details',
+  'audit.pagination.previous': 'Previous',
+  'audit.pagination.next': 'Next',
+  'audit.pagination.pageInfo': 'Page {{current}} of {{total}}',
+  'audit.pagination.showing': 'Showing {{from}}-{{to}} of {{total}}',
 };
 
 export const CS_DICTIONARY: TranslationDictionary = {

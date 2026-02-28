@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../prisma/client';
 import { authenticate, requireAdmin } from '../middleware/auth';
+import { logAdminAction } from '../utils/auditLog';
 
 const router = Router();
 
@@ -145,6 +146,20 @@ router.post('/bulk-upsert', authenticate, requireAdmin, async (req: Request, res
 
       return validItems.length;
     });
+
+    if (req.userId) {
+      await logAdminAction({
+        actorUserId: req.userId,
+        action: 'translation.bulkUpsert',
+        targetType: 'translation',
+        targetId: normalizedLang,
+        details: {
+          language: normalizedLang,
+          codes: validItems.map((item) => item.code),
+          upsertedCount: result,
+        },
+      });
+    }
 
     res.json({
       lang: normalizedLang,
