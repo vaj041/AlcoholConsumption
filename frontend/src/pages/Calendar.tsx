@@ -27,7 +27,7 @@ const getDateKey = (date: Date) => {
 };
 
 const getMonthLabel = (date: Date) =>
-  date.toLocaleDateString('cs-CZ', {
+  date.toLocaleDateString('en-GB', {
     month: 'long',
     year: 'numeric',
   });
@@ -520,7 +520,7 @@ export default function Calendar() {
                             {entry.drink.volumeMl}ml • {entry.drink.alcoholPct}%
                           </div>
                           <div className="text-xs text-base-content/60">
-                            {new Date(entry.date).toLocaleTimeString('cs-CZ', {
+                            {new Date(entry.date).toLocaleTimeString('en-GB', {
                               hour: '2-digit',
                               minute: '2-digit',
                             })}

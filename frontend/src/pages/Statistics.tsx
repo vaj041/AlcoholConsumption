@@ -75,10 +75,10 @@ const getPresetRange = (preset: PresetKey): DateRange => {
 };
 
 const PRESET_LABELS: Record<PresetKey, string> = {
-  prevWeek: 'Minulý týden',
-  thisWeek: 'Tento týden',
-  prevMonth: 'Minulý měsíc',
-  thisMonth: 'Tento měsíc',
+  prevWeek: 'Previous Week',
+  thisWeek: 'This Week',
+  prevMonth: 'Previous Month',
+  thisMonth: 'This Month',
 };
 
 export default function Statistics() {
@@ -152,7 +152,7 @@ export default function Statistics() {
 
       <div className="card bg-base-100 shadow-xl mb-6">
         <div className="card-body">
-          <h2 className="card-title">Předvolené období</h2>
+          <h2 className="card-title">Preset Range</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {(Object.keys(PRESET_LABELS) as PresetKey[]).map((preset) => (
               <Button
@@ -171,7 +171,7 @@ export default function Statistics() {
 
       <div className="card bg-base-100 shadow-xl mb-6">
         <div className="card-body">
-          <h2 className="card-title">Vlastní rozsah (volitelné)</h2>
+          <h2 className="card-title">Custom Range (Optional)</h2>
           <form onSubmit={handleSubmit} className="flex gap-4 items-end flex-wrap">
             <div className="form-control flex-1">
               <label className="label">
@@ -278,7 +278,7 @@ export default function Statistics() {
                       {stats.daily.map((day) => (
                         <tr key={day.date}>
                           <td>
-                            {new Date(day.date).toLocaleDateString('cs-CZ', {
+                            {new Date(day.date).toLocaleDateString('en-GB', {
                               year: 'numeric',
                               month: 'short',
                               day: 'numeric',
