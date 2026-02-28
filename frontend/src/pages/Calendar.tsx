@@ -170,6 +170,18 @@ export default function Calendar() {
       ? selectedDayStats.totalGrams / defaultDrinkPureAlcoholGrams
       : null;
 
+  const sortedDrinks = useMemo(() => {
+    if (!defaultDrinkId) {
+      return drinks;
+    }
+
+    return [...drinks].sort((a, b) => {
+      if (a.id === defaultDrinkId) return -1;
+      if (b.id === defaultDrinkId) return 1;
+      return 0;
+    });
+  }, [drinks, defaultDrinkId]);
+
   useEffect(() => {
     fetchDrinks();
   }, [fetchDrinks]);
@@ -197,7 +209,7 @@ export default function Calendar() {
 
   const openAddModal = (dateKey: string) => {
     setSelectedDate(dateKey);
-    setSelectedDrinkId(drinks[0] ? String(drinks[0].id) : '');
+    setSelectedDrinkId(sortedDrinks[0] ? String(sortedDrinks[0].id) : '');
     setQuantity('1');
     setIsModalOpen(true);
   };
@@ -427,7 +439,7 @@ export default function Calendar() {
                   {drinks.length === 0 ? (
                     <option value="">No drinks available</option>
                   ) : (
-                    drinks.map((drink) => (
+                    sortedDrinks.map((drink) => (
                       <option key={drink.id} value={drink.id}>
                         {drink.name} ({drink.volumeMl}ml, {drink.alcoholPct}%)
                       </option>

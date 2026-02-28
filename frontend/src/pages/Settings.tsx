@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import Button from '../components/Button';
 import { useDrinksStore } from '../store/drinksStore';
 import { useSettingsStore } from '../store/settingsStore';
@@ -12,6 +12,18 @@ export default function Settings() {
   useEffect(() => {
     fetchDrinks();
   }, [fetchDrinks]);
+
+  const sortedDrinks = useMemo(() => {
+    if (!defaultDrinkId) {
+      return drinks;
+    }
+
+    return [...drinks].sort((a, b) => {
+      if (a.id === defaultDrinkId) return -1;
+      if (b.id === defaultDrinkId) return 1;
+      return 0;
+    });
+  }, [drinks, defaultDrinkId]);
 
   const selectedDefaultDrink = drinks.find((drink) => drink.id === defaultDrinkId) ?? null;
 
@@ -62,7 +74,7 @@ export default function Settings() {
                 disabled={isLoading}
               >
                 <option value="">No default drink</option>
-                {drinks.map((drink) => (
+                {sortedDrinks.map((drink) => (
                   <option key={drink.id} value={drink.id}>
                     {drink.name} ({drink.volumeMl}ml, {drink.alcoholPct}%)
                   </option>

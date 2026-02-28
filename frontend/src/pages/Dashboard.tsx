@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDrinksStore } from '../store/drinksStore';
+import { useSettingsStore } from '../store/settingsStore';
 import { entriesService } from '../services/entriesService';
 import Button from '../components/Button';
 import type { CreateEntryData, Entry } from '../types';
@@ -13,6 +14,7 @@ interface EntryFormData {
 
 export default function Dashboard() {
   const { drinks, fetchDrinks } = useDrinksStore();
+  const defaultDrinkId = useSettingsStore((state) => state.defaultDrinkId);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -97,6 +99,18 @@ export default function Dashboard() {
 
   const todayStats = calculateTodayStats();
 
+  const sortedDrinks = useMemo(() => {
+    if (!defaultDrinkId) {
+      return drinks;
+    }
+
+    return [...drinks].sort((a, b) => {
+      if (a.id === defaultDrinkId) return -1;
+      if (b.id === defaultDrinkId) return 1;
+      return 0;
+    });
+  }, [drinks, defaultDrinkId]);
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
@@ -128,7 +142,7 @@ export default function Dashboard() {
                   disabled={isSubmitting || drinks.length === 0}
                 >
                   <option value="">Select a drink...</option>
-                  {drinks.map((drink) => (
+                  {sortedDrinks.map((drink) => (
                     <option key={drink.id} value={drink.id}>
                       {drink.name} ({drink.volumeMl}ml, {drink.alcoholPct}%)
                     </option>
