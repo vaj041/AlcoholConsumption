@@ -10,7 +10,8 @@
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "seed:translations": "ts-node src/scripts/seedTranslations.ts",
-    "ensure:admin": "ts-node src/scripts/ensureAdmin.ts"
+    "ensure:admin": "ts-node src/scripts/ensureAdmin.ts",
+    "test:smoke": "node test-api.js"
   },
   "keywords": [],
   "author": "",

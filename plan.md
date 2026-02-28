@@ -262,3 +262,21 @@ frontend/
 ## **10. Hosting a dalsi**
 
 - https://www.forpsicloud.cz/vps.aspx
+
+---
+
+## **11. Release checklist (quick)**
+
+Před release/deploy doporučeno spustit:
+
+1. Backend build
+  - `cd backend && npm run build`
+2. Frontend build
+  - `cd frontend && npm run build`
+3. Backend smoke testy kritických cest
+  - `cd backend && npm run test:smoke`
+
+Smoke testy ověřují minimálně:
+- auth flow (register/login/me),
+- role guard (`403` pro non-admin),
+- admin translations upsert + čtení překladu.
