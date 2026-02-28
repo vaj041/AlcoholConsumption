@@ -8,6 +8,7 @@ import authRoutes from './routes/auth';
 import drinksRoutes from './routes/drinks';
 import entriesRoutes from './routes/entries';
 import statsRoutes from './routes/stats';
+import translationsRoutes from './routes/translations';
 
 // Load environment variables
 dotenv.config();
@@ -29,6 +30,7 @@ app.use('/auth', authRoutes);
 app.use('/drinks', drinksRoutes);
 app.use('/entries', entriesRoutes);
 app.use('/stats', statsRoutes);
+app.use('/translations', translationsRoutes);
 
 // Start server
 app.listen(PORT, () => {

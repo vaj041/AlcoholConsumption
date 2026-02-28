@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "seed:translations": "ts-node src/scripts/seedTranslations.ts"
   },
   "keywords": [],
   "author": "",

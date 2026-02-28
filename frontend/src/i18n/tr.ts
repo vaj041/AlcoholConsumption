@@ -146,6 +146,7 @@ export const tr = {
     deleteConfirm: () => translate('drinks.deleteConfirm', 'Are you sure you want to delete this drink?'),
     delete: () => translate('drinks.delete', 'Delete'),
     empty: () => translate('drinks.empty', 'No drinks yet. Add your first drink!'),
+    addFailed: () => translate('drinks.addFailed', 'Failed to add drink:'),
     validationNameRequired: () => translate('drinks.validation.nameRequired', 'Name is required'),
     validationVolumeRequired: () => translate('drinks.validation.volumeRequired', 'Volume is required'),
     validationVolumePositive: () => translate('drinks.validation.volumePositive', 'Volume must be positive'),

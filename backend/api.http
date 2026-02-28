@@ -77,3 +77,25 @@ Authorization: Bearer {{login.response.body.token}}
 ### Delete Drink
 DELETE http://localhost:3001/drinks/2
 Authorization: Bearer {{login.response.body.token}}
+
+### Get Translations (Public)
+GET http://localhost:3001/translations?lang=cs
+
+### Bulk Upsert Translations (Protected)
+POST http://localhost:3001/translations/bulk-upsert
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "lang": "cs",
+  "items": [
+    {
+      "code": "layout.menu.dashboard",
+      "text": "Přehled"
+    },
+    {
+      "code": "layout.menu.calendar",
+      "text": "Kalendář"
+    }
+  ]
+}
