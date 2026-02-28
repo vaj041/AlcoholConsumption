@@ -8,6 +8,7 @@ import { translationsService, type AdminTranslationTerm } from '../services/tran
 import type { SupportedLanguage } from '../i18n/dictionary';
 
 export default function Translations() {
+  const PAGE_SIZE = 20;
   const authUser = useAuthStore((state) => state.user);
   const language = useSettingsStore((state) => state.language);
   const [adminLang, setAdminLang] = useState<SupportedLanguage>(language);
@@ -15,6 +16,7 @@ export default function Translations() {
   const [termText, setTermText] = useState('');
   const [termDescription, setTermDescription] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [translationError, setTranslationError] = useState<string | null>(null);
   const [translationSuccess, setTranslationSuccess] = useState<string | null>(null);
   const [isSavingTranslation, setIsSavingTranslation] = useState(false);
@@ -55,6 +57,10 @@ export default function Translations() {
     loadAdminTerms();
   }, [isAdmin, adminLang]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, adminLang]);
+
   const filteredTerms = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
@@ -66,6 +72,13 @@ export default function Translations() {
       [term.code, term.text, term.description ?? ''].some((value) => value.toLowerCase().includes(query)),
     );
   }, [adminTerms, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredTerms.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * PAGE_SIZE;
+  const paginatedTerms = filteredTerms.slice(pageStart, pageStart + PAGE_SIZE);
+  const showingFrom = filteredTerms.length === 0 ? 0 : pageStart + 1;
+  const showingTo = Math.min(pageStart + PAGE_SIZE, filteredTerms.length);
 
   const updateAdminTermText = (code: string, text: string) => {
     setAdminTerms((prev) => prev.map((term) => (term.code === code ? { ...term, text } : term)));
@@ -279,45 +292,76 @@ export default function Translations() {
               ) : filteredTerms.length === 0 ? (
                 <div className="text-sm text-base-content/70">{tr.settings.translationsEmpty()}</div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="table table-zebra table-sm">
-                    <thead>
-                      <tr>
-                        <th>{tr.settings.translationsTableCode()}</th>
-                        <th>{tr.settings.translationsTableText()}</th>
-                        <th>{tr.settings.translationsTableDescription()}</th>
-                        <th>{tr.settings.translationsTableActions()}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredTerms.map((term) => (
-                        <tr key={term.code}>
-                          <td className="font-mono text-xs">{term.code}</td>
-                          <td>
-                            <input
-                              type="text"
-                              className="input input-bordered input-sm w-full min-w-60"
-                              value={term.text}
-                              onChange={(event) => updateAdminTermText(term.code, event.target.value)}
-                              disabled={isLoadingAdminTerms || savingRowCode === term.code}
-                            />
-                          </td>
-                          <td className="text-xs text-base-content/70">{term.description || '-'}</td>
-                          <td>
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              className="btn-sm"
-                              onClick={() => handleSaveAdminTermRow(term)}
-                              disabled={isLoadingAdminTerms || !!savingRowCode}
-                            >
-                              {savingRowCode === term.code ? tr.settings.translationsSaving() : tr.settings.translationsSaveRow()}
-                            </Button>
-                          </td>
+                <div>
+                  <div className="overflow-x-auto">
+                    <table className="table table-zebra table-sm">
+                      <thead>
+                        <tr>
+                          <th>{tr.settings.translationsTableCode()}</th>
+                          <th>{tr.settings.translationsTableText()}</th>
+                          <th>{tr.settings.translationsTableDescription()}</th>
+                          <th>{tr.settings.translationsTableActions()}</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {paginatedTerms.map((term) => (
+                          <tr key={term.code}>
+                            <td className="font-mono text-xs">{term.code}</td>
+                            <td>
+                              <input
+                                type="text"
+                                className="input input-bordered input-sm w-full min-w-60"
+                                value={term.text}
+                                onChange={(event) => updateAdminTermText(term.code, event.target.value)}
+                                disabled={isLoadingAdminTerms || savingRowCode === term.code}
+                              />
+                            </td>
+                            <td className="text-xs text-base-content/70">{term.description || '-'}</td>
+                            <td>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                className="btn-sm"
+                                onClick={() => handleSaveAdminTermRow(term)}
+                                disabled={isLoadingAdminTerms || !!savingRowCode}
+                              >
+                                {savingRowCode === term.code ? tr.settings.translationsSaving() : tr.settings.translationsSaveRow()}
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <div className="text-sm text-base-content/70">
+                      {tr.settings.translationsPaginationShowing(String(showingFrom), String(showingTo), String(filteredTerms.length))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="btn-sm"
+                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                        disabled={safePage <= 1}
+                      >
+                        {tr.settings.translationsPaginationPrevious()}
+                      </Button>
+                      <span className="text-sm min-w-32 text-center">
+                        {tr.settings.translationsPaginationPageInfo(String(safePage), String(totalPages))}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="btn-sm"
+                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                        disabled={safePage >= totalPages}
+                      >
+                        {tr.settings.translationsPaginationNext()}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

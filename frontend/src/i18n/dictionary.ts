@@ -69,6 +69,10 @@ export const EN_DICTIONARY: TranslationDictionary = {
   'settings.translations.table.description': 'Description',
   'settings.translations.table.actions': 'Actions',
   'settings.translations.saveRow': 'Save row',
+  'settings.translations.pagination.previous': 'Previous',
+  'settings.translations.pagination.next': 'Next',
+  'settings.translations.pagination.pageInfo': 'Page {{current}} of {{total}}',
+  'settings.translations.pagination.showing': 'Showing {{from}}-{{to}} of {{total}}',
 
   'stats.title': 'Statistics',
   'stats.presetRange': 'Preset Range',

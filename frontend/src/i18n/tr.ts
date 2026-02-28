@@ -81,6 +81,12 @@ export const tr = {
     translationsTableDescription: () => translate('settings.translations.table.description', 'Description'),
     translationsTableActions: () => translate('settings.translations.table.actions', 'Actions'),
     translationsSaveRow: () => translate('settings.translations.saveRow', 'Save row'),
+    translationsPaginationPrevious: () => translate('settings.translations.pagination.previous', 'Previous'),
+    translationsPaginationNext: () => translate('settings.translations.pagination.next', 'Next'),
+    translationsPaginationPageInfo: (current: string, total: string) =>
+      translate('settings.translations.pagination.pageInfo', 'Page {{current}} of {{total}}', { current, total }),
+    translationsPaginationShowing: (from: string, to: string, total: string) =>
+      translate('settings.translations.pagination.showing', 'Showing {{from}}-{{to}} of {{total}}', { from, to, total }),
     translationsValidationCode: () => translate('settings.translations.validationCode', 'Term code is required.'),
     translationsValidationText: () =>
       translate('settings.translations.validationText', 'Translated text is required.'),
