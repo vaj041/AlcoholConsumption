@@ -10,6 +10,7 @@ import History from './pages/History';
 import Statistics from './pages/Statistics';
 import Settings from './pages/Settings';
 import Translations from './pages/Translations';
+import Users from './pages/Users';
 import Layout from './components/Layout';
 import { useSettingsStore } from './store/settingsStore';
 import { i18n } from './i18n/i18nService';
@@ -80,6 +81,7 @@ function App() {
           <Route path="/stats" element={<Statistics />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/translations" element={<Translations />} />
+          <Route path="/users" element={<Users />} />
         </Route>
       </Routes>
     </BrowserRouter>

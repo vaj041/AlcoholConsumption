@@ -21,6 +21,7 @@ export default function Layout({ children }: LayoutProps) {
     '/stats': tr.layout.pageTitleStats(),
     '/settings': tr.layout.pageTitleSettings(),
     '/translations': tr.layout.pageTitleTranslations(),
+    '/users': tr.layout.pageTitleUsers(),
   };
 
   const pageTitle = pageTitleMap[location.pathname] || 'Dashboard';
@@ -31,7 +32,12 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/calendar', label: tr.layout.menuCalendar() },
     { path: '/stats', label: tr.layout.menuStats() },
     { path: '/settings', label: tr.layout.menuSettings() },
-    ...(user?.role === 'admin' ? [{ path: '/translations', label: tr.layout.menuTranslations() }] : []),
+    ...(user?.role === 'admin'
+      ? [
+          { path: '/translations', label: tr.layout.menuTranslations() },
+          { path: '/users', label: tr.layout.menuUsers() },
+        ]
+      : []),
   ];
 
   return (

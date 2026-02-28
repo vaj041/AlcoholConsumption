@@ -1,5 +1,5 @@
 import api from './api';
-import type { AuthResponse, LoginCredentials, RegisterCredentials, User } from '../types';
+import type { AuthResponse, LoginCredentials, RegisterCredentials, UpdateUserRoleData, User } from '../types';
 
 export const authService = {
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
@@ -20,6 +20,16 @@ export const authService = {
 
   async getCurrentUser(): Promise<User> {
     const { data } = await api.get<User>('/auth/me');
+    return data;
+  },
+
+  async getUsers(): Promise<User[]> {
+    const { data } = await api.get<User[]>('/auth/admin/users');
+    return data;
+  },
+
+  async updateUserRole(userId: number, payload: UpdateUserRoleData): Promise<User> {
+    const { data } = await api.patch<User>(`/auth/admin/users/${userId}/role`, payload);
     return data;
   },
 

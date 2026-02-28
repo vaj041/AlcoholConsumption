@@ -24,6 +24,19 @@ Content-Type: application/json
 GET http://localhost:3001/auth/me
 Authorization: Bearer {{login.response.body.token}}
 
+### Admin - List Users
+GET http://localhost:3001/auth/admin/users
+Authorization: Bearer {{login.response.body.token}}
+
+### Admin - Update User Role
+PATCH http://localhost:3001/auth/admin/users/2/role
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "role": "user"
+}
+
 ### Get All Drinks
 GET http://localhost:3001/drinks
 Authorization: Bearer {{login.response.body.token}}
