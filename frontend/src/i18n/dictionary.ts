@@ -214,6 +214,7 @@ export const EN_DICTIONARY: TranslationDictionary = {
   'users.table.actions': 'Actions',
   'users.promote': 'Promote to admin',
   'users.demote': 'Demote to user',
+  'users.demoteConfirm': 'Are you sure you want to demote this admin to user?',
   'users.role.admin': 'admin',
   'users.role.user': 'user',
   'users.currentUser': 'you',

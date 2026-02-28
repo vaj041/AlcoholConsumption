@@ -44,6 +44,13 @@ export default function Users() {
       return;
     }
 
+    if (targetUser.role === 'admin' && nextRole === 'user') {
+      const confirmed = window.confirm(tr.users.demoteConfirm());
+      if (!confirmed) {
+        return;
+      }
+    }
+
     if (targetUser.role === 'admin' && nextRole === 'user' && adminCount <= 1) {
       setSuccess(null);
       setError(tr.users.lastAdmin());

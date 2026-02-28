@@ -247,6 +247,7 @@ export const tr = {
     tableActions: () => translate('users.table.actions', 'Actions'),
     promote: () => translate('users.promote', 'Promote to admin'),
     demote: () => translate('users.demote', 'Demote to user'),
+    demoteConfirm: () => translate('users.demoteConfirm', 'Are you sure you want to demote this admin to user?'),
     roleAdmin: () => translate('users.role.admin', 'admin'),
     roleUser: () => translate('users.role.user', 'user'),
     currentUser: () => translate('users.currentUser', 'you'),
