@@ -48,6 +48,25 @@ export const tr = {
     defaultDrinkNone: () => translate('settings.defaultDrink.none', 'No default drink'),
     defaultDrinkPureAlcohol: (drinkName: string, grams: string) =>
       translate('settings.defaultDrink.pureAlcohol', '1 {{drinkName}} = {{grams}}g pure alcohol', { drinkName, grams }),
+    translationsTitle: () => translate('settings.translations.title', 'Translation Admin'),
+    translationsDescription: () =>
+      translate('settings.translations.description', 'Upsert translation terms in database overrides.'),
+    translationsLanguage: () => translate('settings.translations.language', 'Language'),
+    translationsCode: () => translate('settings.translations.code', 'Term code'),
+    translationsCodePlaceholder: () =>
+      translate('settings.translations.codePlaceholder', 'e.g. layout.menu.dashboard'),
+    translationsText: () => translate('settings.translations.text', 'Translated text'),
+    translationsTextPlaceholder: () => translate('settings.translations.textPlaceholder', 'e.g. Dashboard'),
+    translationsNote: () => translate('settings.translations.note', 'Description (optional)'),
+    translationsNotePlaceholder: () =>
+      translate('settings.translations.notePlaceholder', 'Internal note for translators'),
+    translationsSave: () => translate('settings.translations.save', 'Save translation'),
+    translationsSaving: () => translate('settings.translations.saving', 'Saving...'),
+    translationsSuccess: () => translate('settings.translations.success', 'Translation saved.'),
+    translationsError: () => translate('settings.translations.error', 'Failed to save translation.'),
+    translationsValidationCode: () => translate('settings.translations.validationCode', 'Term code is required.'),
+    translationsValidationText: () =>
+      translate('settings.translations.validationText', 'Translated text is required.'),
   },
   stats: {
     title: () => translate('stats.title', 'Statistics'),

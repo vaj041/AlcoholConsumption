@@ -7,9 +7,29 @@ type TranslationsResponse = {
   translations: TranslationDictionary;
 };
 
+type BulkUpsertItem = {
+  code: string;
+  text: string;
+  description?: string;
+};
+
+type BulkUpsertResponse = {
+  lang: string;
+  upserted: number;
+};
+
 export const translationsService = {
   async getTranslations(language: SupportedLanguage): Promise<TranslationDictionary> {
     const { data } = await api.get<TranslationsResponse>(`/translations?lang=${language}`);
     return data.translations ?? {};
+  },
+
+  async bulkUpsert(language: SupportedLanguage, items: BulkUpsertItem[]): Promise<BulkUpsertResponse> {
+    const { data } = await api.post<BulkUpsertResponse>('/translations/bulk-upsert', {
+      lang: language,
+      items,
+    });
+
+    return data;
   },
 };
