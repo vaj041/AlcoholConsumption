@@ -81,6 +81,10 @@ Authorization: Bearer {{login.response.body.token}}
 ### Get Translations (Public)
 GET http://localhost:3001/translations?lang=cs
 
+### Get Translation Terms for Admin (Protected)
+GET http://localhost:3001/translations/admin/terms?lang=cs
+Authorization: Bearer {{login.response.body.token}}
+
 ### Bulk Upsert Translations (Protected)
 POST http://localhost:3001/translations/bulk-upsert
 Authorization: Bearer {{login.response.body.token}}

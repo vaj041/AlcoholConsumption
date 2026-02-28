@@ -15,6 +15,41 @@ type BulkUpsertBody = {
   items?: UpsertTranslationItem[];
 };
 
+router.get('/admin/terms', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const lang = typeof req.query.lang === 'string' ? req.query.lang : 'en';
+    const normalizedLang = lang.trim().toLowerCase();
+
+    const terms = await prisma.translationTerm.findMany({
+      orderBy: { code: 'asc' },
+      include: {
+        values: {
+          where: { lang: normalizedLang },
+          select: {
+            text: true,
+            updatedAt: true,
+          },
+          take: 1,
+        },
+      },
+    });
+
+    res.json({
+      lang: normalizedLang,
+      count: terms.length,
+      terms: terms.map((term) => ({
+        code: term.code,
+        description: term.description,
+        text: term.values[0]?.text ?? '',
+        updatedAt: term.values[0]?.updatedAt ?? null,
+      })),
+    });
+  } catch (error) {
+    console.error('Get translation terms error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const lang = typeof req.query.lang === 'string' ? req.query.lang : 'en';

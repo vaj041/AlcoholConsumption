@@ -18,6 +18,19 @@ type BulkUpsertResponse = {
   upserted: number;
 };
 
+type AdminTermsResponse = {
+  lang: string;
+  count: number;
+  terms: AdminTranslationTerm[];
+};
+
+export type AdminTranslationTerm = {
+  code: string;
+  description: string | null;
+  text: string;
+  updatedAt: string | null;
+};
+
 export const translationsService = {
   async getTranslations(language: SupportedLanguage): Promise<TranslationDictionary> {
     const { data } = await api.get<TranslationsResponse>(`/translations?lang=${language}`);
@@ -31,5 +44,10 @@ export const translationsService = {
     });
 
     return data;
+  },
+
+  async getAdminTerms(language: SupportedLanguage): Promise<AdminTranslationTerm[]> {
+    const { data } = await api.get<AdminTermsResponse>(`/translations/admin/terms?lang=${language}`);
+    return data.terms ?? [];
   },
 };
