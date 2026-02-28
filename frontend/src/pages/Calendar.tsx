@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Button from '../components/Button';
 import { entriesService } from '../services/entriesService';
 import { useDrinksStore } from '../store/drinksStore';
+import { useSettingsStore } from '../store/settingsStore';
 import type { Entry } from '../types';
 
 type DayCell = {
@@ -76,7 +77,11 @@ const getDayStats = (entries: Entry[]): DayStats => {
   };
 };
 
-const getTooltipText = (stats: DayStats | undefined): string => {
+const getTooltipText = (
+  stats: DayStats | undefined,
+  defaultDrinkName: string | null,
+  defaultDrinkPureAlcoholGrams: number | null,
+): string => {
   if (!stats || stats.entries.length === 0) {
     return 'No drinks';
   }
@@ -86,11 +91,17 @@ const getTooltipText = (stats: DayStats | undefined): string => {
     .map((entry) => `${entry.drink.name} (${entry.quantity}x)`)
     .join(', ');
 
-  return `${stats.entries.length} entries • ${stats.totalGrams.toFixed(1)}g alcohol • ${topDrinks}`;
+  const defaultDrinkPart =
+    defaultDrinkName && defaultDrinkPureAlcoholGrams && defaultDrinkPureAlcoholGrams > 0
+      ? ` • ≈ ${(stats.totalGrams / defaultDrinkPureAlcoholGrams).toFixed(1)} ${defaultDrinkName}`
+      : '';
+
+  return `${stats.entries.length} entries • ${stats.totalGrams.toFixed(1)}g alcohol${defaultDrinkPart} • ${topDrinks}`;
 };
 
 export default function Calendar() {
   const { drinks, fetchDrinks } = useDrinksStore();
+  const defaultDrinkId = useSettingsStore((state) => state.defaultDrinkId);
 
   const [monthDate, setMonthDate] = useState(() => {
     const now = new Date();
@@ -147,6 +158,17 @@ export default function Calendar() {
   }, [entriesByDay, selectedDayKey]);
 
   const selectedDayStats = useMemo(() => getDayStats(selectedDayEntries), [selectedDayEntries]);
+
+  const selectedDefaultDrink = drinks.find((drink) => drink.id === defaultDrinkId) ?? null;
+
+  const defaultDrinkPureAlcoholGrams = selectedDefaultDrink
+    ? selectedDefaultDrink.volumeMl * (selectedDefaultDrink.alcoholPct / 100) * 0.789
+    : null;
+
+  const selectedDayDefaultDrinks =
+    defaultDrinkPureAlcoholGrams && defaultDrinkPureAlcoholGrams > 0
+      ? selectedDayStats.totalGrams / defaultDrinkPureAlcoholGrams
+      : null;
 
   useEffect(() => {
     fetchDrinks();
@@ -332,7 +354,11 @@ export default function Calendar() {
                     className={`tooltip tooltip-top min-h-28 rounded-lg border p-2 flex flex-col ${
                       day.inCurrentMonth ? 'bg-base-100 border-base-300' : 'bg-base-200/50 border-base-300/60'
                     } ${isToday ? 'ring-2 ring-primary' : ''}`}
-                    data-tip={getTooltipText(dayStats)}
+                    data-tip={getTooltipText(
+                      dayStats,
+                      selectedDefaultDrink?.name ?? null,
+                      defaultDrinkPureAlcoholGrams,
+                    )}
                     role="button"
                     tabIndex={0}
                     onClick={() => openDayModal(day.dateKey)}
@@ -365,6 +391,11 @@ export default function Calendar() {
                       <div className="mt-auto space-y-1">
                         <div className="badge badge-primary badge-sm">{dayStats.entries.length} entries</div>
                         <div className="text-xs text-base-content/70">{dayStats.totalGrams.toFixed(1)}g alcohol</div>
+                        {defaultDrinkPureAlcoholGrams && defaultDrinkPureAlcoholGrams > 0 && selectedDefaultDrink && (
+                          <div className="text-xs text-base-content/70">
+                            ≈ {(dayStats.totalGrams / defaultDrinkPureAlcoholGrams).toFixed(1)} {selectedDefaultDrink.name}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="mt-auto text-xs text-base-content/50">No drinks</div>
@@ -447,6 +478,11 @@ export default function Calendar() {
                 <p className="text-sm text-base-content/70">
                   {selectedDayEntries.length} entries • {selectedDayStats.totalGrams.toFixed(1)}g alcohol
                 </p>
+                {selectedDayDefaultDrinks !== null && selectedDefaultDrink && (
+                  <p className="text-sm text-base-content/70">
+                    ≈ {selectedDayDefaultDrinks.toFixed(1)} {selectedDefaultDrink.name}
+                  </p>
+                )}
               </div>
               <Button type="button" variant="primary" className="btn-sm" onClick={openAddModalFromDay}>
                 + Add drink

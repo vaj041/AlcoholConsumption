@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { statsService } from '../services/statsService';
 import Button from '../components/Button';
+import { useDrinksStore } from '../store/drinksStore';
+import { useSettingsStore } from '../store/settingsStore';
 import type { StatsResponse } from '../types';
 
 type PresetKey = 'prevWeek' | 'thisWeek' | 'prevMonth' | 'thisMonth';
@@ -80,6 +82,8 @@ const PRESET_LABELS: Record<PresetKey, string> = {
 };
 
 export default function Statistics() {
+  const { drinks, fetchDrinks } = useDrinksStore();
+  const defaultDrinkId = useSettingsStore((state) => state.defaultDrinkId);
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -104,6 +108,29 @@ export default function Statistics() {
     const initialRange = getPresetRange('thisWeek');
     loadStats(initialRange.from, initialRange.to);
   }, []);
+
+  useEffect(() => {
+    fetchDrinks();
+  }, [fetchDrinks]);
+
+  const selectedDefaultDrink = drinks.find((drink) => drink.id === defaultDrinkId) ?? null;
+
+  const dailyAverageGrams =
+    stats && stats.daily.length > 0 ? stats.total.pureAlcoholGrams / stats.daily.length : 0;
+
+  const defaultDrinkPureAlcoholGrams = selectedDefaultDrink
+    ? selectedDefaultDrink.volumeMl * (selectedDefaultDrink.alcoholPct / 100) * 0.789
+    : null;
+
+  const dailyAverageDefaultDrinks =
+    defaultDrinkPureAlcoholGrams && defaultDrinkPureAlcoholGrams > 0
+      ? dailyAverageGrams / defaultDrinkPureAlcoholGrams
+      : null;
+
+  const totalDefaultDrinks =
+    stats && defaultDrinkPureAlcoholGrams && defaultDrinkPureAlcoholGrams > 0
+      ? stats.total.pureAlcoholGrams / defaultDrinkPureAlcoholGrams
+      : null;
 
   const handlePresetClick = (preset: PresetKey) => {
     const range = getPresetRange(preset);
@@ -196,6 +223,13 @@ export default function Statistics() {
               <div className="card-body">
                 <h2 className="card-title">Total Pure Alcohol</h2>
                 <p className="text-3xl font-bold">{stats.total.pureAlcoholGrams.toFixed(1)}g</p>
+                {totalDefaultDrinks !== null && selectedDefaultDrink ? (
+                  <p className="text-sm opacity-90">
+                    ≈ {totalDefaultDrinks.toFixed(1)} {selectedDefaultDrink.name}
+                  </p>
+                ) : (
+                  <p className="text-sm opacity-80">Select default drink in Settings</p>
+                )}
                 <p className="text-sm opacity-80">{stats.total.pureAlcoholMl.toFixed(1)}ml</p>
               </div>
             </div>
@@ -211,13 +245,15 @@ export default function Statistics() {
             <div className="card bg-accent text-accent-content shadow-xl">
               <div className="card-body">
                 <h2 className="card-title">Daily Average</h2>
-                <p className="text-3xl font-bold">
-                  {stats.daily.length > 0
-                    ? (stats.total.pureAlcoholGrams / stats.daily.length).toFixed(1)
-                    : '0.0'}
-                  g
-                </p>
-                <p className="text-sm opacity-80">per day</p>
+                <p className="text-3xl font-bold">{dailyAverageGrams.toFixed(1)}g</p>
+                {dailyAverageDefaultDrinks !== null && selectedDefaultDrink ? (
+                  <p className="text-sm opacity-90">
+                    ≈ {dailyAverageDefaultDrinks.toFixed(1)} {selectedDefaultDrink.name}
+                  </p>
+                ) : (
+                  <p className="text-sm opacity-80">Select default drink in Settings</p>
+                )}
+                <p className="text-xs opacity-70">per day</p>
               </div>
             </div>
           </div>

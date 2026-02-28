@@ -8,16 +8,23 @@ import Drinks from './pages/Drinks';
 import Calendar from './pages/Calendar';
 import History from './pages/History';
 import Statistics from './pages/Statistics';
+import Settings from './pages/Settings';
 import Layout from './components/Layout';
+import { useSettingsStore } from './store/settingsStore';
 
 function App() {
   const { token, loadUser } = useAuthStore();
+  const theme = useSettingsStore((state) => state.theme);
 
   useEffect(() => {
     if (token) {
       loadUser();
     }
   }, [token, loadUser]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   return (
     <BrowserRouter>
@@ -31,6 +38,7 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/history" element={<History />} />
           <Route path="/stats" element={<Statistics />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>
