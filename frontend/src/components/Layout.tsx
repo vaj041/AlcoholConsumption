@@ -36,7 +36,7 @@ export default function Layout({ children }: LayoutProps) {
       <input id="layout-drawer" type="checkbox" className="drawer-toggle" />
 
       <div className="drawer-content">
-        <header className="fixed top-0 left-0 right-0 z-40 h-[60px] bg-base-200 border-b border-base-300">
+        <header className="fixed top-0 left-0 right-0 z-[60] h-[60px] bg-base-200 border-b border-base-300">
           <div className="h-full px-4 flex items-center justify-between">
             <div className="w-1/3 flex items-center">
               <label htmlFor="layout-drawer" className="btn btn-ghost btn-square drawer-button">
