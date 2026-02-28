@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { entriesService } from '../services/entriesService';
+import Button from '../components/Button';
 import type { Entry } from '../types';
 
 export default function History() {
@@ -138,18 +139,20 @@ export default function History() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button
+                      <Button
                         onClick={() => handleEdit(entry)}
-                        className="btn btn-warning btn-sm"
+                        variant="secondary"
+                        className="btn-sm"
                       >
                         Edit
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => handleDelete(entry.id)}
-                        className="btn btn-error btn-sm"
+                        variant="danger"
+                        className="btn-sm"
                       >
                         Delete
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -195,12 +198,12 @@ export default function History() {
             </div>
 
             <div className="modal-action">
-              <button onClick={handleCancelEdit} className="btn">
+              <Button onClick={handleCancelEdit} variant="outline">
                 Cancel
-              </button>
-              <button onClick={handleSaveEdit} className="btn btn-primary">
+              </Button>
+              <Button onClick={handleSaveEdit} variant="primary">
                 Save
-              </button>
+              </Button>
             </div>
           </div>
         </div>

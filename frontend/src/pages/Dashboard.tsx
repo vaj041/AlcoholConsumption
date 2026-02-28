@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDrinksStore } from '../store/drinksStore';
 import { entriesService } from '../services/entriesService';
+import Button from '../components/Button';
 import type { CreateEntryData, Entry } from '../types';
 
 interface EntryFormData {
@@ -185,13 +186,14 @@ export default function Dashboard() {
                 )}
               </div>
 
-              <button
+              <Button
                 type="submit"
-                className="btn btn-primary w-full"
+                variant="primary"
+                className="w-full"
                 disabled={isSubmitting || drinks.length === 0}
               >
                 {isSubmitting ? 'Adding...' : 'Add Entry'}
-              </button>
+              </Button>
             </form>
           </div>
         </div>

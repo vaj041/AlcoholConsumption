@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import Button from './Button';
 
 type LayoutProps = {
   children?: ReactNode;
@@ -70,9 +71,9 @@ export default function Layout({ children }: LayoutProps) {
               </li>
             ))}
             <li>
-              <button type="button" onClick={logout} className="text-left">
+              <Button type="button" variant="outline" onClick={logout} className="w-full justify-start border-0 shadow-none">
                 Logout
-              </button>
+              </Button>
             </li>
           </ul>
         </aside>

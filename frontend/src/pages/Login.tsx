@@ -1,7 +1,8 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useState } from 'react';
+import Button from '../components/Button';
 
 interface LoginForm {
   email: string;
@@ -88,21 +89,22 @@ export default function Login() {
             </div>
 
             <div className="form-control mt-6">
-              <button 
+              <Button
                 type="submit" 
-                className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
+                variant="primary"
+                className={isLoading ? 'loading' : ''}
                 disabled={isLoading}
               >
                 {isLoading ? 'Logging in...' : 'Login'}
-              </button>
+              </Button>
             </div>
           </form>
 
           <div className="divider">OR</div>
 
-          <Link to="/register" className="btn btn-outline btn-sm">
+          <Button variant="outline" className="btn-sm" onClick={() => navigate('/register')}>
             Create new account
-          </Link>
+          </Button>
         </div>
       </div>
     </div>

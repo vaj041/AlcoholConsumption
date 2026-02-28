@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import Button from '../components/Button';
 import { entriesService } from '../services/entriesService';
 import { useDrinksStore } from '../store/drinksStore';
 import type { Entry } from '../types';
@@ -287,15 +288,15 @@ export default function Calendar() {
         <h1 className="text-3xl font-bold">Calendar</h1>
 
         <div className="join">
-          <button type="button" className="btn join-item" onClick={goPrevMonth}>
+          <Button type="button" variant="outline" className="join-item" onClick={goPrevMonth}>
             ←
-          </button>
-          <button type="button" className="btn join-item btn-ghost min-w-52 pointer-events-none">
+          </Button>
+          <Button type="button" variant="outline" className="join-item btn-ghost min-w-52 pointer-events-none">
             {getMonthLabel(monthDate)}
-          </button>
-          <button type="button" className="btn join-item" onClick={goNextMonth}>
+          </Button>
+          <Button type="button" variant="outline" className="join-item" onClick={goNextMonth}>
             →
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -346,9 +347,10 @@ export default function Calendar() {
                       <span className={`text-sm font-semibold ${day.inCurrentMonth ? '' : 'text-base-content/50'}`}>
                         {day.date.getDate()}
                       </span>
-                      <button
+                      <Button
                         type="button"
-                        className="btn btn-ghost btn-xs"
+                        variant="outline"
+                        className="btn-ghost btn-xs"
                         onClick={(event) => {
                           event.stopPropagation();
                           openAddModal(day.dateKey);
@@ -356,7 +358,7 @@ export default function Calendar() {
                         title="Add drink"
                       >
                         +
-                      </button>
+                      </Button>
                     </div>
 
                     {dayStats && dayStats.entries.length > 0 ? (
@@ -420,17 +422,17 @@ export default function Calendar() {
             </div>
 
             <div className="modal-action">
-              <button type="button" className="btn" onClick={closeModal} disabled={isSubmitting}>
+              <Button type="button" variant="outline" onClick={closeModal} disabled={isSubmitting}>
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className="btn btn-primary"
+                variant="primary"
                 onClick={handleAddEntry}
                 disabled={isSubmitting || !selectedDrinkId}
               >
                 {isSubmitting ? 'Saving...' : 'Add'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -446,9 +448,9 @@ export default function Calendar() {
                   {selectedDayEntries.length} entries • {selectedDayStats.totalGrams.toFixed(1)}g alcohol
                 </p>
               </div>
-              <button type="button" className="btn btn-primary btn-sm" onClick={openAddModalFromDay}>
+              <Button type="button" variant="primary" className="btn-sm" onClick={openAddModalFromDay}>
                 + Add drink
-              </button>
+              </Button>
             </div>
 
             {selectedDayEntries.length === 0 ? (
@@ -493,32 +495,34 @@ export default function Calendar() {
                             onChange={(e) => setEditQuantity(e.target.value)}
                             disabled={isEditing}
                           />
-                          <button
+                          <Button
                             type="button"
-                            className="btn btn-primary btn-sm"
+                            variant="primary"
+                            className="btn-sm"
                             onClick={() => handleSaveEdit(entry.id)}
                             disabled={isEditing}
                           >
                             {isEditing ? 'Saving...' : 'Save'}
-                          </button>
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={cancelEditEntry} disabled={isEditing}>
+                          </Button>
+                          <Button type="button" variant="outline" className="btn-ghost btn-sm" onClick={cancelEditEntry} disabled={isEditing}>
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       ) : (
                         <div className="mt-3 flex items-center gap-2">
                           <div className="badge badge-outline">Quantity: {entry.quantity}x</div>
-                          <button type="button" className="btn btn-warning btn-sm" onClick={() => startEditEntry(entry)}>
+                          <Button type="button" variant="secondary" className="btn-sm" onClick={() => startEditEntry(entry)}>
                             Edit
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
-                            className="btn btn-error btn-sm"
+                            variant="danger"
+                            className="btn-sm"
                             onClick={() => handleDeleteEntry(entry.id)}
                             disabled={isDeletingId === entry.id}
                           >
                             {isDeletingId === entry.id ? 'Deleting...' : 'Delete'}
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -528,9 +532,9 @@ export default function Calendar() {
             )}
 
             <div className="modal-action">
-              <button type="button" className="btn" onClick={closeDayModal}>
+              <Button type="button" variant="outline" onClick={closeDayModal}>
                 Close
-              </button>
+              </Button>
             </div>
           </div>
         </div>

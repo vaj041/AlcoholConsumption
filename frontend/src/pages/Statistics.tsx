@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { statsService } from '../services/statsService';
+import Button from '../components/Button';
 import type { StatsResponse } from '../types';
 
 type PresetKey = 'prevWeek' | 'thisWeek' | 'prevMonth' | 'thisMonth';
@@ -127,15 +128,15 @@ export default function Statistics() {
           <h2 className="card-title">Předvolené období</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {(Object.keys(PRESET_LABELS) as PresetKey[]).map((preset) => (
-              <button
+              <Button
                 key={preset}
                 type="button"
                 onClick={() => handlePresetClick(preset)}
-                className={`btn ${activePreset === preset ? 'btn-primary' : 'btn-outline'}`}
+                variant={activePreset === preset ? 'primary' : 'outline'}
                 disabled={isLoading}
               >
                 {PRESET_LABELS[preset]}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -175,9 +176,9 @@ export default function Statistics() {
                 required
               />
             </div>
-            <button type="submit" className="btn btn-primary" disabled={isLoading}>
+            <Button type="submit" variant="primary" disabled={isLoading}>
               {isLoading ? 'Loading...' : 'Load Statistics'}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

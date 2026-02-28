@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDrinksStore } from '../store/drinksStore';
+import Button from '../components/Button';
 
 interface DrinkForm {
   name: string;
@@ -37,12 +38,9 @@ export default function Drinks() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Drinks</h1>
-        <button 
-          className="btn btn-primary"
-          onClick={() => setShowForm(!showForm)}
-        >
+        <Button variant="primary" onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Cancel' : '+ Add Drink'}
-        </button>
+        </Button>
       </div>
 
       {showForm && (
@@ -111,9 +109,9 @@ export default function Drinks() {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary w-full">
+              <Button type="submit" variant="primary" className="w-full">
                 Add Drink
-              </button>
+              </Button>
             </form>
           </div>
         </div>
@@ -138,12 +136,13 @@ export default function Drinks() {
                       Pure alcohol: {(drink.volumeMl * (drink.alcoholPct / 100) * 0.789).toFixed(1)}g
                     </p>
                   </div>
-                  <button 
-                    className="btn btn-error btn-sm"
+                  <Button
+                    variant="danger"
+                    className="btn-sm"
                     onClick={() => handleDelete(drink.id)}
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
