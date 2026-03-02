@@ -36,6 +36,17 @@ const listAuditLogsQuerySchema = z.object({
     .pipe(z.number().int().min(1).max(100)),
 });
 
+const getAuthToken = (user: { id: number; role: string }): string => {
+  const secret = process.env.JWT_SECRET || 'your-secret-key';
+  const payload = {
+    userId: user.id,
+    role: user.role,
+    isAdmin: user.role === 'admin',
+  };
+
+  return jwt.sign(payload, secret, { expiresIn: '7d' });
+};
+
 // Register
 router.post('/register', authRateLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -74,8 +85,7 @@ router.post('/register', authRateLimiter, async (req: Request, res: Response): P
     });
 
     // Generate JWT token
-    const secret = process.env.JWT_SECRET || 'your-secret-key';
-    const token = jwt.sign({ userId: user.id, role: user.role }, secret, { expiresIn: '7d' });
+    const token = getAuthToken(user);
 
     res.status(201).json({
       token,
@@ -123,8 +133,7 @@ router.post('/login', authRateLimiter, async (req: Request, res: Response): Prom
     }
 
     // Generate JWT token
-    const secret = process.env.JWT_SECRET || 'your-secret-key';
-    const token = jwt.sign({ userId: user.id, role: user.role }, secret, { expiresIn: '7d' });
+    const token = getAuthToken(user);
 
     res.json({
       token,
