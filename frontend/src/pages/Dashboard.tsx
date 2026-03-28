@@ -1,0 +1,270 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useDrinksStore } from '../store/drinksStore';
+import { useSettingsStore } from '../store/settingsStore';
+import { entriesService } from '../services/entriesService';
+import Button from '../components/Button';
+import { tr } from '../i18n/tr';
+import type { CreateEntryData, Entry } from '../types';
+
+interface EntryFormData {
+  drinkId: string;
+  quantity: number;
+  date: string;
+}
+
+export default function Dashboard() {
+  const { drinks, fetchDrinks } = useDrinksStore();
+  const defaultDrinkId = useSettingsStore((state) => state.defaultDrinkId);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [todayEntries, setTodayEntries] = useState<Entry[]>([]);
+  const [isLoadingToday, setIsLoadingToday] = useState(true);
+  
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<EntryFormData>({
+    defaultValues: {
+      date: new Date().toISOString().split('T')[0]
+    }
+  });
+
+  useEffect(() => {
+    fetchDrinks();
+    loadTodayEntries();
+  }, [fetchDrinks]);
+
+  const loadTodayEntries = async () => {
+    try {
+      setIsLoadingToday(true);
+      const today = new Date().toISOString().split('T')[0];
+      const allEntries = await entriesService.getAll();
+      const todaysEntries = allEntries.filter(entry => 
+        entry.date.startsWith(today)
+      );
+      setTodayEntries(todaysEntries);
+    } catch (err) {
+      console.error('Failed to load today entries:', err);
+    } finally {
+      setIsLoadingToday(false);
+    }
+  };
+
+  const calculateTodayStats = () => {
+    let totalGrams = 0;
+    let totalMl = 0;
+
+    todayEntries.forEach(entry => {
+      const volumeMl = entry.drink.volumeMl * entry.quantity;
+      const pureAlcoholMl = volumeMl * (entry.drink.alcoholPct / 100);
+      const pureAlcoholGrams = pureAlcoholMl * 0.789;
+      totalMl += pureAlcoholMl;
+      totalGrams += pureAlcoholGrams;
+    });
+
+    return { totalGrams, totalMl };
+  };
+
+  const onSubmit = async (data: EntryFormData) => {
+    try {
+      setIsSubmitting(true);
+      setErrorMessage('');
+      setSuccessMessage('');
+
+      const entryData: CreateEntryData = {
+        drinkId: parseInt(data.drinkId),
+        quantity: data.quantity,
+        date: new Date(data.date).toISOString()
+      };
+
+      await entriesService.create(entryData);
+      setSuccessMessage(tr.dashboard.successAdded());
+      reset({
+        drinkId: '',
+        quantity: 1,
+        date: new Date().toISOString().split('T')[0]
+      });
+      
+      // Reload today's entries if the added entry is for today
+      const today = new Date().toISOString().split('T')[0];
+      if (data.date === today) {
+        loadTodayEntries();
+      }
+      
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : tr.dashboard.errorAdd());
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const todayStats = calculateTodayStats();
+
+  const sortedDrinks = useMemo(() => {
+    if (!defaultDrinkId) {
+      return drinks;
+    }
+
+    return [...drinks].sort((a, b) => {
+      if (a.id === defaultDrinkId) return -1;
+      if (b.id === defaultDrinkId) return 1;
+      return 0;
+    });
+  }, [drinks, defaultDrinkId]);
+
+  return (
+    <div>
+      <h1 className="text-3xl font-bold mb-6">{tr.dashboard.title()}</h1>
+      <div className="grid gap-4">
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">{tr.dashboard.quickAdd()}</h2>
+            
+            {successMessage && (
+              <div className="alert alert-success">
+                <span>{successMessage}</span>
+              </div>
+            )}
+            
+            {errorMessage && (
+              <div className="alert alert-error">
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">{tr.dashboard.drink()}</span>
+                </label>
+                <select
+                  {...register('drinkId', { required: tr.dashboard.selectDrinkValidation() })}
+                  className="select select-bordered w-full"
+                  disabled={isSubmitting || drinks.length === 0}
+                >
+                  <option value="">{tr.dashboard.drinkSelect()}</option>
+                  {sortedDrinks.map((drink) => (
+                    <option key={drink.id} value={drink.id}>
+                      {drink.name} ({drink.volumeMl}ml, {drink.alcoholPct}%)
+                    </option>
+                  ))}
+                </select>
+                {errors.drinkId && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.drinkId.message}</span>
+                  </label>
+                )}
+                {drinks.length === 0 && (
+                  <label className="label">
+                    <span className="label-text-alt text-warning">{tr.dashboard.noDrinksAvailable()}</span>
+                  </label>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">{tr.dashboard.quantity()}</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  {...register('quantity', {
+                    required: tr.dashboard.quantityRequired(),
+                    min: { value: 0.1, message: tr.dashboard.quantityMin() },
+                    max: { value: 100, message: tr.dashboard.quantityMax() }
+                  })}
+                  className="input input-bordered w-full"
+                  placeholder="1"
+                  disabled={isSubmitting}
+                />
+                {errors.quantity && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.quantity.message}</span>
+                  </label>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">{tr.dashboard.date()}</span>
+                </label>
+                <input
+                  type="date"
+                  {...register('date', { required: tr.dashboard.dateRequired() })}
+                  className="input input-bordered w-full"
+                  disabled={isSubmitting}
+                />
+                {errors.date && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.date.message}</span>
+                  </label>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                className="w-full"
+                disabled={isSubmitting || drinks.length === 0}
+              >
+                {isSubmitting ? tr.dashboard.adding() : tr.dashboard.addEntry()}
+              </Button>
+            </form>
+          </div>
+        </div>
+        
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">{tr.dashboard.todaySummary()}</h2>
+            {isLoadingToday ? (
+              <div className="flex justify-center py-4">
+                <span className="loading loading-spinner loading-md"></span>
+              </div>
+            ) : todayEntries.length === 0 ? (
+              <p className="text-base-content/60">{tr.dashboard.noEntriesToday()}</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="stats shadow w-full">
+                  <div className="stat">
+                    <div className="stat-title">{tr.dashboard.entriesToday()}</div>
+                    <div className="stat-value text-primary">{todayEntries.length}</div>
+                  </div>
+                  <div className="stat">
+                    <div className="stat-title">{tr.dashboard.pureAlcohol()}</div>
+                    <div className="stat-value text-secondary">{todayStats.totalGrams.toFixed(1)}g</div>
+                    <div className="stat-desc">{todayStats.totalMl.toFixed(1)}ml</div>
+                  </div>
+                </div>
+                
+                <div className="divider">{tr.dashboard.todaysDrinks()}</div>
+                
+                <div className="space-y-2">
+                  {todayEntries.map(entry => {
+                    const volumeMl = entry.drink.volumeMl * entry.quantity;
+                    const pureAlcoholMl = volumeMl * (entry.drink.alcoholPct / 100);
+                    const pureAlcoholGrams = pureAlcoholMl * 0.789;
+                    
+                    return (
+                      <div key={entry.id} className="flex justify-between items-center p-3 bg-base-200 rounded-lg">
+                        <div>
+                          <p className="font-semibold">{entry.drink.name}</p>
+                          <p className="text-sm text-base-content/60">
+                            {entry.quantity}x {entry.drink.volumeMl}ml ({entry.drink.alcoholPct}%)
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-accent">{pureAlcoholGrams.toFixed(1)}g</p>
+                          <p className="text-xs text-base-content/60">{pureAlcoholMl.toFixed(1)}ml</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

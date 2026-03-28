@@ -1,0 +1,143 @@
+### Health Check
+GET http://localhost:3001/health
+
+### Register
+POST http://localhost:3001/auth/register
+Content-Type: application/json
+
+{
+  "email": "user4@test.cz",
+  "password": "heslo123"
+}
+
+### Login
+# @name login
+POST http://localhost:3001/auth/login
+Content-Type: application/json
+
+{
+  "email": "user4@test.cz",
+  "password": "heslo123"
+}
+
+### Get Current User
+GET http://localhost:3001/auth/me
+Authorization: Bearer {{login.response.body.token}}
+
+### Admin - List Users
+GET http://localhost:3001/auth/admin/users
+Authorization: Bearer {{login.response.body.token}}
+
+### Admin - Update User Role
+PATCH http://localhost:3001/auth/admin/users/2/role
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "role": "user"
+}
+
+### Get All Drinks
+GET http://localhost:3001/drinks
+Authorization: Bearer {{login.response.body.token}}
+
+### Create Drink
+# @name createDrink
+POST http://localhost:3001/drinks
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "name": "Pivo 12°",
+  "volumeMl": 500,
+  "alcoholPct": 5.0
+}
+
+### Update Drink
+PUT http://localhost:3001/drinks/2
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "name": "Pivo 12° Updated",
+  "volumeMl": 500,
+  "alcoholPct": 5.2
+}
+
+### Create Entry
+POST http://localhost:3001/entries
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "date": "2026-02-08T12:00:00Z",
+  "quantity": 2,
+  "drinkId": {{createDrink.response.body.id}}
+}
+
+### Get Entries
+GET http://localhost:3001/entries?from=2026-02-01&to=2026-02-28
+Authorization: Bearer {{login.response.body.token}}
+
+### Get Statistics
+GET http://localhost:3001/stats?from=2026-02-01&to=2026-02-28
+Authorization: Bearer {{login.response.body.token}}
+
+### Delete Entry
+DELETE http://localhost:3001/entries/2
+Authorization: Bearer {{login.response.body.token}}
+
+### Delete Drink
+DELETE http://localhost:3001/drinks/2
+Authorization: Bearer {{login.response.body.token}}
+
+### Get Translations (Public)
+GET http://localhost:3001/translations?lang=cs
+
+### Get Translation Terms for Admin (Protected)
+GET http://localhost:3001/translations/admin/terms?lang=cs
+Authorization: Bearer {{login.response.body.token}}
+
+### Bulk Upsert Translations (Protected)
+POST http://localhost:3001/translations/bulk-upsert
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "lang": "cs",
+  "items": [
+    {
+      "code": "layout.menu.dashboard",
+      "text": "Přehled"
+    },
+    {
+      "code": "layout.menu.calendar",
+      "text": "Kalendář"
+    }
+  ]
+}
+
+### Login as non-admin (example)
+# @name loginNonAdmin
+POST http://localhost:3001/auth/login
+Content-Type: application/json
+
+{
+  "email": "user-nonadmin@test.cz",
+  "password": "heslo123"
+}
+
+### Bulk Upsert Translations as non-admin (expected 403)
+POST http://localhost:3001/translations/bulk-upsert
+Authorization: Bearer {{loginNonAdmin.response.body.token}}
+Content-Type: application/json
+
+{
+  "lang": "cs",
+  "items": [
+    {
+      "code": "layout.menu.stats",
+      "text": "Statistiky"
+    }
+  ]
+}

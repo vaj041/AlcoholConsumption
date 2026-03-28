@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  drinks    Drink[]
+  entries   Entry[]
+  auditLogs AuditLog[]
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  actorUserId Int
+  action      String
+  targetType  String
+  targetId    String?
+  details     String?
+  createdAt   DateTime @default(now())
+  actorUser   User     @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+
+  @@index([actorUserId])
+  @@index([createdAt])
+}
+
+model Drink {
+  id         Int      @id @default(autoincrement())
+  name       String
+  volumeMl   Int
+  alcoholPct Float
+  userId     Int
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries    Entry[]
+}
+
+model Entry {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  quantity  Int
+  drinkId   Int
+  userId    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  drink     Drink    @relation(fields: [drinkId], references: [id], onDelete: Cascade)
+}
+
+model TranslationTerm {
+  id          Int                @id @default(autoincrement())
+  code        String             @unique
+  description String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  values      TranslationValue[]
+}
+
+model TranslationValue {
+  id        Int             @id @default(autoincrement())
+  termId    Int
+  lang      String
+  text      String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  term      TranslationTerm @relation(fields: [termId], references: [id], onDelete: Cascade)
+
+  @@unique([termId, lang])
+  @@index([lang])
+}

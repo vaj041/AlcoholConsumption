@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	.form-control {
+		@apply gap-1;
+	}
+
+	.form-control .label {
+		@apply block w-full p-0 pb-1;
+	}
+
+	.form-control .label .label-text {
+		@apply block text-sm font-medium text-base-content;
+	}
+
+	.input.input-bordered,
+	.select.select-bordered,
+	textarea.textarea-bordered {
+		@apply bg-base-200 border-base-300 rounded-lg;
+	}
+
+	.input.input-bordered::placeholder,
+	textarea.textarea-bordered::placeholder {
+		@apply text-base-content;
+		opacity: 0.5;
+	}
+
+	.input.input-bordered:focus,
+	.select.select-bordered:focus,
+	textarea.textarea-bordered:focus {
+		@apply border-primary;
+	}
+}
