@@ -8,6 +8,8 @@
     "backend": {
       "root": "backend",
       "framework": "express",
+      "entrypoint": "src/index.ts",
+      "installCommand": "npm ci",
       "buildCommand": "npm run build:vercel"
     }
   },

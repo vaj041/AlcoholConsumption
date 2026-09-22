@@ -47,10 +47,15 @@ app.use('/api/entries', entriesRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/translations', translationsRoutes);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// Vercel consumes the exported app as a serverless handler. Local development
+// keeps the port listener so `npm run dev` behaves as before.
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
