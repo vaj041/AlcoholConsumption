@@ -11,6 +11,7 @@ Stav k 2026-09-22. Tento soubor je pracovni handoff pro dalsiho agenta nebo prac
   - backend install command `npm ci --include=dev`, aby Vercel pouzil backendovy `package-lock.json` vcetne build nastroju
   - backend build: `npm run build:vercel`
   - `build:vercel` provede Prisma generate, PostgreSQL migrace, TypeScript build a kompilovany admin/drink seed
+  - Heslovani pouziva `bcryptjs`, aby serverless runtime nepotreboval nativni bcrypt binding
   - `/api` rewrite na backend a ostatni cesty na frontend
 - Frontend v produkci pouziva jako API adresu `/api`; lokalne stale pouziva `http://localhost:3001`.
 - Backend obsluhuje obe varianty rout:
