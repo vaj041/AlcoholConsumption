@@ -29,12 +29,23 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', message: 'Alcohol Tracker API is running' });
 });
 
+app.get('/api/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok', message: 'Alcohol Tracker API is running' });
+});
+
 // Routes
 app.use('/auth', authRoutes);
 app.use('/drinks', drinksRoutes);
 app.use('/entries', entriesRoutes);
 app.use('/stats', statsRoutes);
 app.use('/translations', translationsRoutes);
+
+// Keep the /api-prefixed routes available when Vercel forwards the original path.
+app.use('/api/auth', authRoutes);
+app.use('/api/drinks', drinksRoutes);
+app.use('/api/entries', entriesRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/translations', translationsRoutes);
 
 // Start server
 app.listen(PORT, () => {

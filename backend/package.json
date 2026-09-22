@@ -4,11 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/index.ts",
+    "dev": "npm run setup:local && nodemon --exec ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "prisma:generate": "prisma generate",
+    "prisma:generate": "prisma generate --schema prisma/schema.prisma",
+    "prisma:generate:local": "prisma generate --schema prisma/sqlite/schema.prisma",
+    "prisma:migrate:local": "prisma migrate deploy --schema prisma/sqlite/schema.prisma",
+    "setup:local": "npm run prisma:generate:local && npm run prisma:migrate:local && npm run ensure:admin",
     "prisma:studio": "prisma studio",
+    "prisma:studio:local": "prisma studio --schema prisma/sqlite/schema.prisma",
     "seed:translations": "ts-node src/scripts/seedTranslations.ts",
     "ensure:admin": "ts-node src/scripts/ensureAdmin.ts",
     "test:smoke": "node test-api.js"
