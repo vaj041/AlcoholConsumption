@@ -8,8 +8,7 @@
     "backend": {
       "root": "backend",
       "framework": "express",
-      "buildCommand": "npx prisma generate && npm run build",
-      "preDeployCommand": "npx prisma migrate deploy && npm run ensure:admin"
+      "buildCommand": "npm run build:vercel"
     }
   },
   "rewrites": [

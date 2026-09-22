@@ -7,8 +7,8 @@ Stav k 2026-09-22. Tento soubor je pracovni handoff pro dalsiho agenta nebo prac
 - V koreni je `vercel.json` s Vercel Services:
   - `frontend`: root `frontend`, framework `vite`
   - `backend`: root `backend`, framework `express`
-  - backend build: `npx prisma generate && npm run build`
-  - backend pre-deploy: `npx prisma migrate deploy && npm run ensure:admin`
+  - backend build: `npm run build:vercel`
+  - `build:vercel` provede Prisma generate, PostgreSQL migrace, admin/drink seed a TypeScript build
   - `/api` rewrite na backend a ostatni cesty na frontend
 - Frontend v produkci pouziva jako API adresu `/api`; lokalne stale pouziva `http://localhost:3001`.
 - Backend obsluhuje obe varianty rout:
@@ -82,7 +82,7 @@ VITE_API_URL=/api
 5. Nastavit Environment Variables.
 6. Spustit deploy.
 
-`preDeployCommand` ma automaticky provest migrace a seed admina s drinkem. Bude fungovat po nastaveni platneho PostgreSQL `DATABASE_URL`.
+Backend `build:vercel` automaticky provede migrace a seed admina s drinkem. Bude fungovat po nastaveni platneho PostgreSQL `DATABASE_URL`.
 
 ### 5. Po deployi otestovat
 
