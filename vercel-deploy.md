@@ -24,6 +24,69 @@ Stav k 2026-09-22. Tento soubor je pracovni handoff pro dalsiho agenta nebo prac
   - pri dalsim spusteni nevytvari duplicity
 - Do Prisma schematu nebyl pridan `username`; User ma pouze existujici pole `email`, `password`, `role` atd.
 
+## Aktualni problem API
+
+API na Vercelu stale neni overene jako funkcni.
+
+Posledni dodany build log ukazuje, ze samotny build probehl:
+
+- Vercel build bezi z vetve `main`, commit `cb1a017`.
+- `prisma generate` probehl.
+- `prisma migrate deploy` probehl: nebyly zadne pending migrace.
+- Admin `st.vajs@seznam.cz` a drink `Pivo 10` uz v databazi existuji.
+- TypeScript build probehl.
+- Vercel vytvoril deployment s entrypointem `src/index.ts`.
+- Pri pozadavku na `/api/health` vsak prohlizec zobrazil `500 FUNCTION_INVOCATION_FAILED`.
+
+Pozdeji se stejna adresa `alcohol-consumption-4gxvttrnv-vaj041.vercel.app` zacala vracet jako `404 DEPLOYMENT_NOT_FOUND`, takze tato URL uz neni spolehlivy aktualni deployment.
+
+### Co je aktualne v repozitari
+
+- Aktualni vetev je `develop`.
+- Posledni commit na `develop` je `b30de31` (`Replace bcrypt with bcryptjs for compatibility with serverless runtime`).
+- `origin/develop` ukazuje na stejny commit.
+- `backend/package.json` uz pouziva `bcryptjs`, ne native `bcrypt`.
+- `backend/src/routes/auth.ts` a `backend/src/scripts/ensureAdmin.ts` uz importuji `bcryptjs`.
+- Lokalni `npm run build` probehl.
+- Lokalni production entrypoint se nacetl a `/api/health` vratil HTTP 200.
+- Vercel ale musi dostat novy deployment z commitu `b30de31` nebo novejsiho.
+
+### Nejpravdepodobnejsi vysvetleni
+
+Build log patri vetvi `main`, zatimco oprava nativeho `bcrypt` je na `develop`. Pokud `main` neobsahuje commit `b30de31`, produkce stale pouziva starsi kod a oprava se do deploymentu vubec nedostala.
+
+Nejdriv overit ve Vercelu **Source Commit** a **Branch** daneho deploymentu. Potom overit Vercel Function Logs pro aktualni deployment. Samotny build log neurcuje duvod runtime chyby.
+
+### Dalsi postup na jinem PC
+
+```powershell
+git clone https://github.com/vaj041/AlcoholConsumption.git
+Set-Location AlcoholConsumption
+git fetch --all --prune
+git branch -a
+git log --oneline --decorate --all -10
+```
+
+Overit, ze `develop` obsahuje `b30de31`, nebo prenest opravu do `main`:
+
+```powershell
+git checkout develop
+git pull origin develop
+git checkout main
+git pull origin main
+git merge develop
+git push origin main
+```
+
+Po novem deploymentu testovat vzdy aktualni URL z detailu deploymentu:
+
+```text
+GET  https://<aktualni-deployment>/api/health
+POST https://<aktualni-deployment>/api/auth/login
+```
+
+Pokud aktualni deployment stale vrati 500, otevrit **Vercel > Deployment > Functions > Logs** a zkopirovat prvni runtime stack trace. Bez tohoto stack trace nelze rozlisit chybu bundlovani, chybejici environment variable nebo chybu Prisma runtime.
+
 ## Overeno lokalne
 
 - `backend`: `npm run build` proslo.
