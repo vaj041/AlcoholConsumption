@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { prisma } from '../prisma/client';
 
 const defaultAdminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'st.vajs@seznam.cz';
