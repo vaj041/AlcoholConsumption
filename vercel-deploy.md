@@ -7,6 +7,8 @@ Stav k 2026-09-22. Tento soubor je pracovni handoff pro dalsiho agenta nebo prac
 - V koreni je `vercel.json` s Vercel Services:
   - `frontend`: root `frontend`, framework `vite`
   - `backend`: root `backend`, framework `express`
+  - backend entrypoint `src/index.ts`
+  - backend install command `npm ci`, aby Vercel pouzil backendovy `package-lock.json`
   - backend build: `npm run build:vercel`
   - `build:vercel` provede Prisma generate, PostgreSQL migrace, admin/drink seed a TypeScript build
   - `/api` rewrite na backend a ostatni cesty na frontend
