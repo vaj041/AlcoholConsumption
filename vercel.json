@@ -8,7 +8,7 @@
     "backend": {
       "root": "backend",
       "framework": "express",
-      "entrypoint": "backend/src/index.ts",
+      "entrypoint": "src/index.ts",
       "installCommand": "npm ci --include=dev",
       "buildCommand": "npm run build:vercel"
     }
