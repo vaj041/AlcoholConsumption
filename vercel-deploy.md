@@ -30,7 +30,8 @@ API na Vercelu stale neni overene jako funkcni.
 
 Posledni dodany build log ukazuje, ze samotny build probehl:
 
-- Vercel build bezi z vetve `main`, commit `cb1a017`.
+- Starsi dodany build log bez problemu s `express` bezel z vetve `main`, commit `cb1a017`.
+- Aktualni screenshot potvrzuje samostatny Preview deployment z vetve `develop`, commit `2fcf383`, se stavem `Ready`.
 - `prisma generate` probehl.
 - `prisma migrate deploy` probehl: nebyly zadne pending migrace.
 - Admin `st.vajs@seznam.cz` a drink `Pivo 10` uz v databazi existuji.
@@ -40,22 +41,29 @@ Posledni dodany build log ukazuje, ze samotny build probehl:
 
 Pozdeji se stejna adresa `alcohol-consumption-4gxvttrnv-vaj041.vercel.app` zacala vracet jako `404 DEPLOYMENT_NOT_FOUND`, takze tato URL uz neni spolehlivy aktualni deployment.
 
+Stav `Ready` potvrzuje dokoncení buildu, ale sam o sobe nepotvrzuje, ze se backendova Function uspesne spusti. Pri otevreni `/api/health` aktualniho deploymentu se stale objevuje `Cannot find module 'express'` z `/var/task/index.js`.
+
 ### Co je aktualne v repozitari
 
 - Aktualni vetev je `develop`.
-- Posledni commit na `develop` je `b30de31` (`Replace bcrypt with bcryptjs for compatibility with serverless runtime`).
+- Posledni commit na `develop` je `2fcf383` (`Change backend entrypoint to src/index.ts`).
+- Oprava obsahuje take predchozi commit `b30de31` (`Replace bcrypt with bcryptjs for compatibility with serverless runtime`).
 - `origin/develop` ukazuje na stejny commit.
 - `backend/package.json` uz pouziva `bcryptjs`, ne native `bcrypt`.
 - `backend/src/routes/auth.ts` a `backend/src/scripts/ensureAdmin.ts` uz importuji `bcryptjs`.
 - Lokalni `npm run build` probehl.
 - Lokalni production entrypoint se nacetl a `/api/health` vratil HTTP 200.
-- Vercel ale musi dostat novy deployment z commitu `b30de31` nebo novejsiho.
+- Vercel ale musi dostat novy deployment z commitu `2fcf383` nebo novejsiho.
 
-### Nejpravdepodobnejsi vysvetleni
+### Co uz neni pravdepodobne
 
-Build log patri vetvi `main`, zatimco oprava nativeho `bcrypt` je na `develop`. Pokud `main` neobsahuje commit `b30de31`, produkce stale pouziva starsi kod a oprava se do deploymentu vubec nedostala.
+Pro aktualni deployment `2fcf383` uz neni dostatecne vysvetleni, ze Vercel deployuje starou vetev. Screenshot potvrzuje, ze Vercel skutecne sestavil `develop`.
 
-Nejdriv overit ve Vercelu **Source Commit** a **Branch** daneho deploymentu. Potom overit Vercel Function Logs pro aktualni deployment. Samotny build log neurcuje duvod runtime chyby.
+### Co je potreba zjistit
+
+Otevrit deployment `2fcf383` -> **Functions** -> **Logs** a zkopirovat prvni runtime stack trace po pozadavku na `/api/health`. Build log pouze potvrzuje instalaci a kompilaci; runtime log ukaze, zda Vercel funkci bali bez service `node_modules`, nebo zda dashboard pouziva jiny root/runtime override.
+
+V konfiguraci repozitare jsou aktualne nastavene `root: backend`, `entrypoint: src/index.ts`, `installCommand: npm ci --include=dev` a `buildCommand: npm run build:vercel`.
 
 ### Dalsi postup na jinem PC
 
@@ -67,7 +75,7 @@ git branch -a
 git log --oneline --decorate --all -10
 ```
 
-Overit, ze `develop` obsahuje `b30de31`, nebo prenest opravu do `main`:
+Overit, ze `develop` obsahuje `2fcf383`, nebo prenest opravy do `main`:
 
 ```powershell
 git checkout develop
