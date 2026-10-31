@@ -1,5 +1,6 @@
 import api from './api';
 import type { AuditLogsResponse, AuthResponse, LoginCredentials, RegisterCredentials, UpdateUserRoleData, User } from '../types';
+import type { SupportedLanguage } from '../i18n/dictionary';
 
 export const authService = {
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
@@ -21,6 +22,18 @@ export const authService = {
   async getCurrentUser(): Promise<User> {
     const { data } = await api.get<User>('/auth/me');
     return data;
+  },
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await api.post('/auth/change-password', { currentPassword, newPassword });
+  },
+
+  async forgotPassword(email: string, language: SupportedLanguage): Promise<void> {
+    await api.post('/auth/forgot-password', { email, language });
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await api.post('/auth/reset-password', { token, newPassword });
   },
 
   async getUsers(): Promise<User[]> {

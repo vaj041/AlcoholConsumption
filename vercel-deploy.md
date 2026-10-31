@@ -18,6 +18,18 @@ Vercel projekt ma mit Root Directory nastavene na koren repozitare.
 potreba promenne `DATABASE_URL` a `JWT_SECRET` v odpovidajicim prostredi
 (Preview nebo Production). Jejich hodnoty nepatri do repozitare.
 
+Pro obnovu hesla jsou navic potreba `MAILJET_API_KEY`, `MAILJET_SECRET_KEY`,
+`MAILJET_FROM_EMAIL` (overeny odesilatel u Mailjetu) a `APP_BASE_URL`
+(presna HTTPS origin aplikace, napr. `https://alcohol-consumption.vercel.app`).
+Volitelne lze nastavit `MAILJET_FROM_NAME`. Preview potrebuje vlastni
+`APP_BASE_URL`, pokud maji odkazy smerovat do preview. Klice a hodnoty vkladejte
+jen do Vercel environment variables, ne do repozitare ani do chatu.
+
+Omezeni poctu pokusu o prihlaseni a obnovu hesla je ulozene pouze v pameti
+jednotlive instance serveru. Ve Vercel serverless prostredi proto neni sdilene
+mezi instancemi; pro spolehlive globalni omezeni je potreba sdilene uloziste
+nebo ochrana na urovni platformy.
+
 **Stavajici produkce se timto automaticky nemeni.** Aktualni produkcni
 deployment muze jeste pouzivat samostatny projekt `alcohol-consumption-api`.
 Jeho Git propojeni je odpojeno, aby nove commity nespoustely samostatny
@@ -38,6 +50,12 @@ URL a zalohou:
 Set-Location backend
 npx prisma migrate deploy
 ```
+
+Migrace pro zmenu a obnovu hesla musi byt provedena pred nasazenim noveho
+backendu, jinak prihlasene API pozadavky nebudou fungovat. Pokud Preview a
+Production sdileji databazi, migrace pro Preview zmeni i produkcni databazi;
+nejprve overte cil a zalohu. Stavajici prihlasovaci tokeny zustanou platne,
+dokud jejich uzivatel nezmeni heslo nebo jim nevyprsi platnost.
 
 Seed admina a vychoziho drinku `npm run ensure:admin` je samostatny prikaz,
 ktery zapisuje do databaze; nespoustejte ho automaticky nad existujici produkci.
