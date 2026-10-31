@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { prisma } from '../prisma/client';
 
 type TokenRole = 'user' | 'admin';
 
@@ -7,6 +8,7 @@ type AuthTokenPayload = {
   userId: number;
   role?: TokenRole;
   isAdmin?: boolean;
+  tokenVersion?: number;
 };
 
 // Extend Express Request type to include userId
@@ -20,11 +22,11 @@ declare global {
   }
 }
 
-export const authenticate = (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -39,20 +41,42 @@ export const authenticate = (
     return;
   }
 
+  let decoded: AuthTokenPayload;
   try {
     const secret = process.env.JWT_SECRET || 'your-secret-key';
-    const decoded = jwt.verify(token, secret) as AuthTokenPayload;
-    const role = decoded.role === 'admin' ? 'admin' : 'user';
-    const isAdmin = decoded.isAdmin ?? role === 'admin';
+    const payload = jwt.verify(token, secret);
+    if (typeof payload === 'string' || typeof payload.userId !== 'number' ||
+        !Number.isSafeInteger(payload.userId) || payload.userId <= 0 ||
+        (payload.tokenVersion !== undefined &&
+          (typeof payload.tokenVersion !== 'number' || !Number.isSafeInteger(payload.tokenVersion) || payload.tokenVersion < 0))) {
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+    decoded = { userId: payload.userId, tokenVersion: payload.tokenVersion };
+  } catch {
+    res.status(401).json({ error: 'Invalid token' });
+    return;
+  }
 
-    req.userId = decoded.userId;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { id: true, role: true, tokenVersion: true },
+    });
+    if (!user || user.tokenVersion !== (decoded.tokenVersion ?? 0)) {
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+
+    const role = user.role === 'admin' ? 'admin' : 'user';
+    req.userId = user.id;
     req.userRole = role;
-    req.isAdmin = isAdmin;
+    req.isAdmin = role === 'admin';
 
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
-    return;
+    console.error('Authentication lookup error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 

@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useState } from 'react';
 import Button from '../components/Button';
@@ -14,6 +14,7 @@ export default function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>();
   const { login, isLoading } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: LoginForm) => {
@@ -35,6 +36,9 @@ export default function Login() {
         <div className="card-body">
           <h2 className="card-title text-2xl font-bold justify-center">🍺 {tr.auth.appTitle()}</h2>
           <p className="text-center text-base-content/70 mb-4">{tr.auth.loginTitle()}</p>
+          {location.state?.passwordChanged === true && (
+            <div className="alert alert-success" role="status">{tr.auth.passwordChanged()}</div>
+          )}
           
           {error && (
             <div className="alert alert-error">
@@ -100,6 +104,9 @@ export default function Login() {
               </Button>
             </div>
           </form>
+          <Button variant="outline" className="btn-sm" onClick={() => navigate('/forgot-password')}>
+            {tr.auth.forgotPassword()}
+          </Button>
 
           <div className="divider">{tr.auth.or()}</div>
 

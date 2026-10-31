@@ -16,7 +16,8 @@
     "prisma:studio:local": "prisma studio --schema prisma/sqlite/schema.prisma",
     "seed:translations": "ts-node src/scripts/seedTranslations.ts",
     "ensure:admin": "ts-node src/scripts/ensureAdmin.ts",
-    "test:smoke": "node test-api.js"
+    "test:smoke": "node test-api.js",
+    "test:password": "npm run prisma:generate:local && npm run build && node --test tests/password.test.js"
   },
   "keywords": [],
   "author": "",

@@ -1,11 +1,14 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { createHash, randomBytes } from 'node:crypto';
+import axios from 'axios';
 import { z } from 'zod';
 import { prisma } from '../prisma/client';
 import { authenticate, requireAdmin } from '../middleware/auth';
 import { authRateLimiter } from '../middleware/rateLimit';
 import { logAdminAction } from '../utils/auditLog';
+import { getMailjetConfig, sendPasswordResetEmail } from '../utils/passwordResetEmail';
 
 const router = Router();
 
@@ -18,6 +21,24 @@ const authCredentialsSchema = z
     email: email.toLowerCase(),
     password,
   }));
+
+const newPasswordSchema = z.string().min(6).max(128)
+  .refine((value) => Buffer.byteLength(value, 'utf8') <= 72);
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: newPasswordSchema,
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().trim().email().max(255).transform((value) => value.toLowerCase()),
+  language: z.enum(['en', 'cs']).default('en'),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().regex(/^[a-f0-9]{64}$/),
+  newPassword: newPasswordSchema,
+});
 
 const updateRoleSchema = z.object({
   role: z.enum(['user', 'admin']),
@@ -36,12 +57,13 @@ const listAuditLogsQuerySchema = z.object({
     .pipe(z.number().int().min(1).max(100)),
 });
 
-const getAuthToken = (user: { id: number; role: string }): string => {
+const getAuthToken = (user: { id: number; role: string; tokenVersion: number }): string => {
   const secret = process.env.JWT_SECRET || 'your-secret-key';
   const payload = {
     userId: user.id,
     role: user.role,
     isAdmin: user.role === 'admin',
+    tokenVersion: user.tokenVersion,
   };
 
   return jwt.sign(payload, secret, { expiresIn: '7d' });
@@ -146,6 +168,115 @@ router.post('/login', authRateLimiter, async (req: Request, res: Response): Prom
     });
   } catch (error) {
     console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/change-password', authenticate, authRateLimiter, async (req: Request, res: Response): Promise<void> => {
+  const parsed = changePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'INVALID_PASSWORD_INPUT' });
+    return;
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user || !(await bcrypt.compare(parsed.data.currentPassword, user.password))) {
+      res.status(400).json({ error: 'CURRENT_PASSWORD_INCORRECT' });
+      return;
+    }
+
+    const password = await bcrypt.hash(parsed.data.newPassword, 10);
+    const result = await prisma.user.updateMany({
+      where: { id: user.id, password: user.password },
+      data: {
+        password,
+        tokenVersion: { increment: 1 },
+        passwordResetTokenHash: null,
+        passwordResetExpires: null,
+      },
+    });
+    if (result.count !== 1) {
+      res.status(409).json({ error: 'PASSWORD_CHANGE_CONFLICT' });
+      return;
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/forgot-password', authRateLimiter, async (req: Request, res: Response): Promise<void> => {
+  const parsed = forgotPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'INVALID_EMAIL' });
+    return;
+  }
+
+  const config = getMailjetConfig();
+  if (!config) {
+    console.error('Password reset email is not configured');
+    res.status(503).json({ error: 'PASSWORD_RESET_UNAVAILABLE' });
+    return;
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email: parsed.data.email }, select: { id: true, email: true } });
+    if (user) {
+      const token = randomBytes(32).toString('hex');
+      const tokenHash = createHash('sha256').update(token).digest('hex');
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordResetTokenHash: tokenHash, passwordResetExpires: new Date(Date.now() + 60 * 60 * 1000) },
+      });
+
+      try {
+        await sendPasswordResetEmail(config, user.email, token, parsed.data.language);
+      } catch (error) {
+        await prisma.user.updateMany({
+          where: { id: user.id, passwordResetTokenHash: tokenHash },
+          data: { passwordResetTokenHash: null, passwordResetExpires: null },
+        });
+        const detail = axios.isAxiosError(error)
+          ? { status: error.response?.status, code: error.code }
+          : { message: error instanceof Error ? error.message : 'Unknown delivery error' };
+        console.error('Password reset email delivery failed:', detail);
+      }
+    }
+    res.status(202).json({ success: true });
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/reset-password', authRateLimiter, async (req: Request, res: Response): Promise<void> => {
+  const parsed = resetPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'INVALID_RESET_INPUT' });
+    return;
+  }
+
+  try {
+    const tokenHash = createHash('sha256').update(parsed.data.token).digest('hex');
+    const password = await bcrypt.hash(parsed.data.newPassword, 10);
+    const result = await prisma.user.updateMany({
+      where: { passwordResetTokenHash: tokenHash, passwordResetExpires: { gt: new Date() } },
+      data: {
+        password,
+        tokenVersion: { increment: 1 },
+        passwordResetTokenHash: null,
+        passwordResetExpires: null,
+      },
+    });
+    if (result.count !== 1) {
+      res.status(400).json({ error: 'INVALID_OR_EXPIRED_RESET_TOKEN' });
+      return;
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
