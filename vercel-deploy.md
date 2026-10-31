@@ -20,7 +20,9 @@ potreba promenne `DATABASE_URL` a `JWT_SECRET` v odpovidajicim prostredi
 
 **Stavajici produkce se timto automaticky nemeni.** Aktualni produkcni
 deployment muze jeste pouzivat samostatny projekt `alcohol-consumption-api`.
-Ten nevypinejte, dokud nebude sjednoceny produkcni deployment overen.
+Jeho Git propojeni je odpojeno, aby nove commity nespoustely samostatny
+backendovy deploy. Stavajici produkcni API zustava v provozu; projekt
+nevypinejte, dokud nebude sjednoceny produkcni deployment overen.
 
 ## Bezpecnost databaze
 
