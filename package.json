@@ -1,0 +1,7 @@
+{
+  "name": "alcohol-consumption",
+  "private": true,
+  "scripts": {
+    "build:vercel": "npm --prefix backend run prisma:generate && npm --prefix frontend run build"
+  }
+}
