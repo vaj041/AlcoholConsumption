@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import Button from '../components/Button';
 import { useAuthStore } from '../store/authStore';
@@ -31,7 +31,7 @@ export default function Translations() {
     setAdminLang(language);
   }, [language]);
 
-  const loadAdminTerms = async () => {
+  const loadAdminTerms = useCallback(async () => {
     if (!isAdmin) {
       return;
     }
@@ -47,7 +47,7 @@ export default function Translations() {
     } finally {
       setIsLoadingAdminTerms(false);
     }
-  };
+  }, [isAdmin, adminLang]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -55,7 +55,7 @@ export default function Translations() {
     }
 
     loadAdminTerms();
-  }, [isAdmin, adminLang]);
+  }, [isAdmin, loadAdminTerms]);
 
   useEffect(() => {
     setCurrentPage(1);

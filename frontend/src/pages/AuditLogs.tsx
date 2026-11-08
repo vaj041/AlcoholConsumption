@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Button from '../components/Button';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
@@ -19,7 +19,7 @@ export default function AuditLogs() {
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / PAGE_SIZE)), [total]);
 
-  const loadLogs = async (requestedPage: number) => {
+  const loadLogs = useCallback(async (requestedPage: number) => {
     if (!isAdmin) {
       return;
     }
@@ -37,11 +37,11 @@ export default function AuditLogs() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAdmin]);
 
   useEffect(() => {
     loadLogs(1);
-  }, [isAdmin]);
+  }, [loadLogs]);
 
   const formatDate = (dateString: string) =>
     new Intl.DateTimeFormat(undefined, {

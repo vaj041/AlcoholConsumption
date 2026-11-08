@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Button from '../components/Button';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
@@ -17,7 +17,7 @@ export default function Users() {
 
   const adminCount = useMemo(() => users.filter((user) => user.role === 'admin').length, [users]);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     if (!isAdmin) {
       return;
     }
@@ -33,11 +33,11 @@ export default function Users() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAdmin]);
 
   useEffect(() => {
     loadUsers();
-  }, [isAdmin]);
+  }, [loadUsers]);
 
   const handleRoleChange = async (targetUser: User, nextRole: 'user' | 'admin') => {
     if (targetUser.role === nextRole) {
