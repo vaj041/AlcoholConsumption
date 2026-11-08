@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [todayEntries, setTodayEntries] = useState<Entry[]>([]);
   const [isLoadingToday, setIsLoadingToday] = useState(true);
   
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<EntryFormData>({
+  const { register, handleSubmit, reset, getValues, setValue, formState: { errors } } = useForm<EntryFormData>({
     defaultValues: {
       date: new Date().toISOString().split('T')[0]
     }
@@ -32,6 +32,12 @@ export default function Dashboard() {
     fetchDrinks();
     loadTodayEntries();
   }, [fetchDrinks]);
+
+  useEffect(() => {
+    if (defaultDrinkId && drinks.some((drink) => drink.id === defaultDrinkId) && !getValues('drinkId')) {
+      setValue('drinkId', String(defaultDrinkId));
+    }
+  }, [defaultDrinkId, drinks, getValues, setValue]);
 
   const loadTodayEntries = async () => {
     try {
@@ -79,7 +85,7 @@ export default function Dashboard() {
       await entriesService.create(entryData);
       setSuccessMessage(tr.dashboard.successAdded());
       reset({
-        drinkId: '',
+        drinkId: drinks.some((drink) => drink.id === defaultDrinkId) ? String(defaultDrinkId) : '',
         quantity: 1,
         date: new Date().toISOString().split('T')[0]
       });
