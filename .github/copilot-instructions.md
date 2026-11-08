@@ -6,7 +6,7 @@ Personal alcohol consumption tracking app with an Express + Prisma backend and a
 
 | Layer | Stack |
 |-------|-------|
-| Backend | Express 5, TypeScript, Prisma (SQLite), Zod, JWT auth, bcrypt |
+| Backend | Express 5, TypeScript, Prisma (SQLite locally, PostgreSQL in production), Zod, JWT auth, bcrypt |
 | Frontend | React 19, TypeScript, Vite, Zustand (persist), React Hook Form, Tailwind CSS + DaisyUI |
 
 ## Build & Run
@@ -18,8 +18,8 @@ cd backend && npm run dev
 # Frontend (port 5173)
 cd frontend && npm run dev
 
-# DB migrations
-cd backend && npx prisma migrate dev
+# Apply local SQLite migrations
+cd backend && npm run prisma:migrate:local
 
 # Seed translations / create admin
 cd backend && npm run seed:translations
@@ -33,6 +33,10 @@ cd backend && npm run ensure:admin
 - **Frontend pages** live in `frontend/src/pages/` (PascalCase). Services in `services/`, stores in `store/`, types in `types/index.ts`.
 - **Auth flow**: JWT bearer tokens. First registered user is auto-promoted to admin. Middleware: `authenticate()`, `requireAdmin()`.
 - **Ownership model**: Drinks and entries are user-scoped. Always verify `userId` matches before update/delete.
+
+## Code review
+
+- For pull request reviews, use the `project-code-review` skill in `.agents/skills/project-code-review/` to check security, architecture, behavior, and relevant tests.
 
 ## Conventions
 
