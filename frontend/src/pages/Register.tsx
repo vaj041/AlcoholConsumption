@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useState } from 'react';
@@ -12,12 +12,12 @@ interface RegisterForm {
 }
 
 export default function Register() {
-  const { register: registerForm, handleSubmit, formState: { errors }, watch } = useForm<RegisterForm>();
+  const { register: registerForm, handleSubmit, formState: { errors }, control } = useForm<RegisterForm>();
   const { register: registerUser, isLoading } = useAuthStore();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
-  const password = watch('password');
+  const password = useWatch({ control, name: 'password' });
 
   const onSubmit = async (data: RegisterForm) => {
     try {
