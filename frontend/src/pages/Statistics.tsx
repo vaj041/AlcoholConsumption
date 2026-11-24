@@ -5,6 +5,7 @@ import { useDrinksStore } from '../store/drinksStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { tr } from '../i18n/tr';
 import type { StatsResponse } from '../types';
+import { dailyAverageGrams } from '../utils/stats';
 
 type PresetKey = 'prevWeek' | 'thisWeek' | 'prevMonth' | 'thisMonth';
 
@@ -118,8 +119,7 @@ export default function Statistics() {
 
   const selectedDefaultDrink = drinks.find((drink) => drink.id === defaultDrinkId) ?? null;
 
-  const dailyAverageGrams =
-    stats && stats.daily.length > 0 ? stats.total.pureAlcoholGrams / stats.daily.length : 0;
+  const averageGrams = stats ? dailyAverageGrams(stats) : 0;
 
   const defaultDrinkPureAlcoholGrams = selectedDefaultDrink
     ? selectedDefaultDrink.volumeMl * (selectedDefaultDrink.alcoholPct / 100) * 0.789
@@ -127,7 +127,7 @@ export default function Statistics() {
 
   const dailyAverageDefaultDrinks =
     defaultDrinkPureAlcoholGrams && defaultDrinkPureAlcoholGrams > 0
-      ? dailyAverageGrams / defaultDrinkPureAlcoholGrams
+      ? averageGrams / defaultDrinkPureAlcoholGrams
       : null;
 
   const totalDefaultDrinks =
@@ -183,6 +183,7 @@ export default function Statistics() {
               <input
                 type="date"
                 value={fromDate}
+                max={toDate}
                 onChange={(e) => {
                   setFromDate(e.target.value);
                   setActivePreset(null);
@@ -198,6 +199,7 @@ export default function Statistics() {
               <input
                 type="date"
                 value={toDate}
+                min={fromDate}
                 onChange={(e) => {
                   setToDate(e.target.value);
                   setActivePreset(null);
@@ -248,7 +250,7 @@ export default function Statistics() {
             <div className="card bg-accent text-accent-content shadow-xl">
               <div className="card-body">
                 <h2 className="card-title">{tr.stats.dailyAverage()}</h2>
-                <p className="text-3xl font-bold">{dailyAverageGrams.toFixed(1)}g</p>
+                <p className="text-3xl font-bold">{averageGrams.toFixed(1)}g</p>
                 {dailyAverageDefaultDrinks !== null && selectedDefaultDrink ? (
                   <p className="text-sm opacity-90">
                     {tr.stats.defaultDrinkEquivalent(dailyAverageDefaultDrinks.toFixed(1), selectedDefaultDrink.name)}
