@@ -241,9 +241,8 @@ export default function Statistics() {
 
             <div className="card bg-secondary text-secondary-content shadow-xl">
               <div className="card-body">
-                <h2 className="card-title">{tr.stats.totalEntries()}</h2>
+                <h2 className="card-title capitalize">{tr.stats.drinksConsumed()}</h2>
                 <p className="text-3xl font-bold">{stats.total.entries}</p>
-                <p className="text-sm opacity-80">{tr.stats.drinksConsumed()}</p>
               </div>
             </div>
 
@@ -274,7 +273,7 @@ export default function Statistics() {
                     <thead>
                       <tr>
                         <th>{tr.stats.tableDate()}</th>
-                        <th>{tr.stats.tableEntries()}</th>
+                        <th className="capitalize">{tr.stats.drinksConsumed()}</th>
                         <th>{tr.stats.tableMl()}</th>
                         <th>{tr.stats.tableG()}</th>
                       </tr>
