@@ -4,7 +4,7 @@ import { dailyAverageGrams } from '../src/utils/stats.ts';
 
 const stats = (from, to, total, daily = []) => ({
   period: { from, to },
-  total: { pureAlcoholGrams: total, pureAlcoholMl: 0, entries: daily.length },
+  total: { pureAlcoholGrams: total, pureAlcoholMl: 0, entries: daily.length, drinksConsumed: 0 },
   daily,
 });
 

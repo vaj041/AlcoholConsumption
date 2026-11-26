@@ -67,7 +67,8 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       total: {
         pureAlcoholGrams: Math.round(totalPureAlcoholGrams * 100) / 100,
         pureAlcoholMl: Math.round(totalPureAlcoholMl * 100) / 100,
-        entries: totalDrinks,
+        entries: entries.length,
+        drinksConsumed: totalDrinks,
       },
       daily: Object.values(dailyStats).map((day) => ({
         ...day,

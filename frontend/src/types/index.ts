@@ -80,6 +80,7 @@ export interface StatsResponse {
     pureAlcoholGrams: number;
     pureAlcoholMl: number;
     entries: number;
+    drinksConsumed: number;
   };
   daily: Array<{
     date: string;

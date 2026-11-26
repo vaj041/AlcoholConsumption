@@ -242,7 +242,7 @@ export default function Statistics() {
             <div className="card bg-secondary text-secondary-content shadow-xl">
               <div className="card-body">
                 <h2 className="card-title capitalize">{tr.stats.drinksConsumed()}</h2>
-                <p className="text-3xl font-bold">{stats.total.entries}</p>
+                <p className="text-3xl font-bold">{stats.total.drinksConsumed}</p>
               </div>
             </div>
 

@@ -34,13 +34,16 @@ test('statistics sum drink quantities rather than counting records', async () =>
       return response.json();
     };
 
-    assert.equal((await getStats()).total.entries, 0);
+    const empty = await getStats();
+    assert.equal(empty.total.entries, 0);
+    assert.equal(empty.total.drinksConsumed, 0);
     entries = [
       { date: new Date('2026-11-27'), quantity: 3, drink: { volumeMl: 500, alcoholPct: 4 } },
       { date: new Date('2026-11-28'), quantity: 2, drink: { volumeMl: 500, alcoholPct: 4 } },
     ];
     const stats = await getStats();
-    assert.equal(stats.total.entries, 5);
+    assert.equal(stats.total.entries, 2);
+    assert.equal(stats.total.drinksConsumed, 5);
     assert.deepEqual(stats.daily.map((day) => day.entries), [3, 2]);
     assert.equal(stats.total.pureAlcoholMl, 100);
     assert.equal(stats.total.pureAlcoholGrams, 78.9);
