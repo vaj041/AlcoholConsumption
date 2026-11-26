@@ -39,6 +39,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     // Calculate statistics
     let totalPureAlcoholGrams = 0;
     let totalPureAlcoholMl = 0;
+    let totalDrinks = 0;
     const dailyStats: Record<string, { date: string; grams: number; ml: number; entries: number }> = {};
 
     entries.forEach((entry) => {
@@ -47,6 +48,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 
       totalPureAlcoholGrams += pureAlcoholGrams;
       totalPureAlcoholMl += pureAlcoholMl;
+      totalDrinks += entry.quantity;
 
       const dateKey = entry.date.toISOString().split('T')[0];
       if (!dailyStats[dateKey]) {
@@ -66,6 +68,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         pureAlcoholGrams: Math.round(totalPureAlcoholGrams * 100) / 100,
         pureAlcoholMl: Math.round(totalPureAlcoholMl * 100) / 100,
         entries: entries.length,
+        drinksConsumed: totalDrinks,
       },
       daily: Object.values(dailyStats).map((day) => ({
         ...day,

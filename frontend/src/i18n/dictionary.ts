@@ -263,6 +263,7 @@ export const EN_DICTIONARY: TranslationDictionary = {
 };
 
 export const CS_DICTIONARY: TranslationDictionary = {
+  'stats.drinksConsumed': 'vypité nápoje',
   'settings.language.en': 'Angličtina',
   'settings.language.cs': 'Čeština',
   'auth.email': 'E-mail',
