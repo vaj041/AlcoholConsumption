@@ -1,5 +1,7 @@
 # Export a import dat
 
+Stav: návrh. Sledování: [issue #22](https://github.com/vaj041/AlcoholConsumption/issues/22).
+
 ## Cíl a rozsah
 
 Uživatel může exportovat své nápoje a záznamy o konzumaci do souboru otevřitelného v Excelu a později je importovat zpět, včetně importu do jiného účtu nebo nové instalace. Opakovaný import stejného souboru nesmí vytvářet duplicity.
